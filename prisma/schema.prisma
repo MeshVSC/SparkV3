@@ -1,0 +1,427 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String?
+  avatar          String?
+  totalXP         Int      @default(0)
+  level           Int      @default(1)
+  currentStreak   Int      @default(0)
+  lastLoginAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Authentication
+  password        String?
+  emailVerified   Boolean  @default(false)
+  
+  // Relations
+  sparks          Spark[]
+  achievements    UserAchievement[]
+  preferences     UserPreferences?
+  notifications   Notification[]
+  sessions        Session[]
+  accounts        Account[]
+  workspaces      UserWorkspace[]
+  comments        Comment[] @relation("CommentAuthor")
+  mentions        Mention[] @relation("UserMentions")
+  templates       Template[]
+  searchHistory   SearchHistory[]
+  savedSearches   SavedSearch[]
+  
+  @@map("users")
+}
+
+model Spark {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  content     String?  // Rich markdown content
+  status      SparkStatus @default(SEEDLING)
+  xp          Int      @default(0)
+  level       Int      @default(1)
+  positionX   Float?
+  positionY   Float?
+  color       String   @default("#10b981")
+  tags        String?  // Stored as JSON array string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  todos       Todo[]
+  attachments Attachment[]
+  connections SparkConnection[] @relation("SparkConnections1")
+  connectedTo SparkConnection[] @relation("SparkConnections2")
+}
+
+model Todo {
+  id          String     @id @default(cuid())
+  sparkId     String
+  title       String
+  description String?
+  completed   Boolean    @default(false)
+  type        TodoType   @default(GENERAL)
+  priority    TodoPriority @default(MEDIUM)
+  positionX   Float?
+  positionY   Float?
+  createdAt   DateTime   @default(now())
+  completedAt DateTime?
+  
+  spark Spark @relation(fields: [sparkId], references: [id], onDelete: Cascade)
+}
+
+model Attachment {
+  id        String           @id @default(cuid())
+  sparkId   String
+  filename  String
+  url       String
+  type      AttachmentType
+  size      Int?
+  createdAt DateTime         @default(now())
+  
+  spark Spark @relation(fields: [sparkId], references: [id], onDelete: Cascade)
+}
+
+model SparkConnection {
+  id        String         @id @default(cuid())
+  sparkId1  String
+  sparkId2  String
+  type      ConnectionType @default(RELATED_TO)
+  metadata  Json?
+  createdAt DateTime       @default(now())
+  
+  spark1 Spark @relation("SparkConnections1", fields: [sparkId1], references: [id], onDelete: Cascade)
+  spark2 Spark @relation("SparkConnections2", fields: [sparkId2], references: [id], onDelete: Cascade)
+  
+  @@unique([sparkId1, sparkId2])
+}
+
+model Achievement {
+  id          String           @id @default(cuid())
+  name        String
+  description String
+  icon        String
+  xpReward    Int
+  type        AchievementType
+  createdAt   DateTime         @default(now())
+  
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+  
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, achievementId])
+}
+
+model UserPreferences {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  theme             Theme    @default(AUTO)
+  soundEnabled      Boolean  @default(true)
+  defaultSparkColor String   @default("#10b981")
+  viewMode          ViewMode @default(CANVAS)
+  
+  // Notification preferences
+  emailNotifications          Boolean  @default(true)
+  pushNotifications           Boolean  @default(true)
+  inAppNotifications          Boolean  @default(true)
+  
+  // Email notification types
+  emailSparkUpdates           Boolean  @default(true)
+  emailAchievementAlerts      Boolean  @default(true)
+  emailCollaborationNotifications Boolean @default(true)
+  
+  // Push notification types
+  pushSparkUpdates            Boolean  @default(true)
+  pushAchievementAlerts       Boolean  @default(true)
+  pushCollaborationNotifications Boolean @default(true)
+  
+  // In-app notification types
+  inAppSparkUpdates           Boolean  @default(true)
+  inAppAchievementAlerts      Boolean  @default(true)
+  inAppCollaborationNotifications Boolean @default(true)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("user_preferences")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Notification {
+  id                String              @id @default(cuid())
+  userId            String
+  type              NotificationType
+  title             String
+  message           String
+  isRead            Boolean             @default(false)
+  priority          NotificationPriority @default(NORMAL)
+  relatedEntityId   String?
+  relatedEntityType String?
+  createdAt         DateTime            @default(now())
+  expiresAt         DateTime?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model Comment {
+  id               String      @id @default(cuid())
+  content          String
+  authorId         String
+  parentId         String?     // For threading/replies
+  entityId         String      // ID of spark/todo/attachment
+  entityType       EntityType  // Type of entity being commented on
+  editedAt         DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  
+  // Relations
+  author           User        @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  parent           Comment?    @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies          Comment[]   @relation("CommentReplies")
+  mentions         Mention[]
+  
+  @@index([entityId, entityType])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Mention {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String   // User being mentioned
+  createdAt DateTime @default(now())
+  
+  // Relations
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserMentions", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([commentId, userId])
+  @@index([userId])
+  @@map("mentions")
+}
+
+enum SparkStatus {
+  SEEDLING
+  SAPLING
+  TREE
+  FOREST
+}
+
+enum TodoType {
+  GENERAL
+  TASK
+}
+
+enum TodoPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AttachmentType {
+  IMAGE
+  FILE
+  LINK
+}
+
+enum AchievementType {
+  MILESTONE
+  STREAK
+  COLLECTION
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  AUTO
+}
+
+enum ViewMode {
+  CANVAS
+  KANBAN
+  TIMELINE
+}
+
+enum ConnectionType {
+  DEPENDS_ON
+  RELATED_TO
+  INSPIRES
+  CONFLICTS_WITH
+}
+
+enum NotificationType {
+  SPARK_UPDATE
+  ACHIEVEMENT
+  COLLABORATION
+  SYSTEM
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Workspace {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users       UserWorkspace[]
+  
+  @@map("workspaces")
+}
+
+model UserWorkspace {
+  id          String      @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        WorkspaceRole @default(VIEWER)
+  createdAt   DateTime    @default(now())
+  
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, workspaceId])
+  @@map("user_workspaces")
+}
+
+enum WorkspaceRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model Template {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  templateData Json     // Serialized project data (sparks, todos, connections, preferences)
+  userId       String
+  isPublic     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("templates")
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String   @default("#10b981")
+  parentTagId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Self-referencing relationship
+  parent      Tag?     @relation("TagHierarchy", fields: [parentTagId], references: [id], onDelete: SetNull)
+  children    Tag[]    @relation("TagHierarchy")
+  
+  @@unique([name])
+  @@map("tags")
+}
+
+model SearchHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  query     String
+  filters   Json?    // Store complex search filters as JSON
+  resultCount Int?   // Number of results returned
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+  @@map("search_history")
+}
+
+model SavedSearch {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  query       String
+  filters     Json?    // Store complex search filters as JSON
+  isPublic    Boolean  @default(false)
+  tags        String?  // Comma-separated or JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastUsedAt  DateTime?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, name])
+  @@index([userId, lastUsedAt])
+  @@map("saved_searches")
+}
+
+enum EntityType {
+  SPARK
+  TODO
+  ATTACHMENT
+}
