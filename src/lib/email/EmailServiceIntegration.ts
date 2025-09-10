@@ -32,10 +32,16 @@ export class EmailServiceIntegration {
       // Check for Mailgun configuration first
       if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
         const config = {
-          provider: 'mailgun' as const,
+          provider: 'smtp' as const,
           from: process.env.FROM_EMAIL || 'notifications@spark.app',
           apiKey: process.env.MAILGUN_API_KEY,
-          domain: process.env.MAILGUN_DOMAIN
+          host: 'smtp.mailgun.org',
+          port: 587,
+          secure: false,
+          auth: {
+            user: `postmaster@${process.env.MAILGUN_DOMAIN}`,
+            pass: process.env.MAILGUN_API_KEY
+          }
         };
 
         await emailService.configure(config);

@@ -1,5 +1,5 @@
 // server.ts - Next.js Standalone + Socket.IO
-import { setupSocket } from '@/lib/socket';
+// import { setupSocket } from '@/lib/socket';
 import { socketNotificationIntegration } from '@/lib/notification/SocketNotificationIntegration';
 import { emailServiceIntegration } from '@/lib/email/EmailServiceIntegration';
 import { createServer } from 'http';
@@ -42,7 +42,7 @@ async function createCustomServer() {
       }
     });
 
-    setupSocket(io);
+    // setupSocket(io);
     
     // Initialize notification integration with Socket.IO
     socketNotificationIntegration.initialize(io);

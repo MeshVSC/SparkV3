@@ -6,7 +6,7 @@ import { useSpark } from "@/contexts/spark-context"
 import { SparkCard } from "@/components/spark-card"
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { Spark } from "@/types/spark"
-import { FixedSizeGrid as Grid } from 'react-window'
+// import { FixedSizeGrid as Grid } from 'react-window'
 
 interface ConnectionLine {
   id: string

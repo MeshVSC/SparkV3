@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
         preferences: {
           create: {
             theme: "AUTO",
-            notifications: true,
+            pushNotifications: true,
             soundEnabled: true,
             defaultSparkColor: "#10b981",
             viewMode: "CANVAS",
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: error.errors },
+        { error: "Invalid input", details: error.issues },
         { status: 400 }
       )
     }

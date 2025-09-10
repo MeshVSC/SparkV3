@@ -28,25 +28,21 @@ export async function GET(request: NextRequest) {
           {
             title: {
               contains: searchQuery,
-              mode: "insensitive",
             },
           },
           {
             description: {
               contains: searchQuery,
-              mode: "insensitive",
             },
           },
           {
             content: {
               contains: searchQuery,
-              mode: "insensitive",
             },
           },
           {
             tags: {
               contains: searchQuery,
-              mode: "insensitive",
             },
           },
         ],

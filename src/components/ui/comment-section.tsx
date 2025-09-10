@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSocket } from "@/hooks/use-socket"
+// import { useSocket } from "@/hooks/use-socket"
 import { CommentThread } from "./comment-thread"
 import { Button } from "./button"
 import { Textarea } from "./textarea"
@@ -48,7 +48,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const { data: session } = useSession()
-  const socket = useSocket()
+  // const socket = useSocket()
 
   // Load comments
   useEffect(() => {
@@ -71,41 +71,41 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
   }, [entityId, entityType])
 
   // Socket event handlers
-  useEffect(() => {
-    if (!socket) return
+  // useEffect(() => {
+  //   if (!socket) return
 
-    const handleNewComment = (comment: Comment) => {
-      if (comment.entityId === entityId && comment.entityType === entityType) {
-        if (comment.parentId) {
-          // It's a reply - add to parent's replies
-          setComments(prev => addReplyToComments(prev, comment))
-        } else {
-          // It's a top-level comment
-          setComments(prev => [comment, ...prev])
-        }
-      }
-    }
+  //   const handleNewComment = (comment: Comment) => {
+  //     if (comment.entityId === entityId && comment.entityType === entityType) {
+  //       if (comment.parentId) {
+  //         // It's a reply - add to parent's replies
+  //         setComments(prev => addReplyToComments(prev, comment))
+  //       } else {
+  //         // It's a top-level comment
+  //         setComments(prev => [comment, ...prev])
+  //       }
+  //     }
+  //   }
 
-    const handleCommentUpdated = (comment: Comment) => {
-      if (comment.entityId === entityId && comment.entityType === entityType) {
-        setComments(prev => updateCommentInTree(prev, comment))
-      }
-    }
+  //   const handleCommentUpdated = (comment: Comment) => {
+  //     if (comment.entityId === entityId && comment.entityType === entityType) {
+  //       setComments(prev => updateCommentInTree(prev, comment))
+  //     }
+  //   }
 
-    const handleCommentDeleted = (commentId: string) => {
-      setComments(prev => removeCommentFromTree(prev, commentId))
-    }
+  //   const handleCommentDeleted = (commentId: string) => {
+  //     setComments(prev => removeCommentFromTree(prev, commentId))
+  //   }
 
-    socket.on("comment:new", handleNewComment)
-    socket.on("comment:updated", handleCommentUpdated)
-    socket.on("comment:deleted", handleCommentDeleted)
+  //   socket.on("comment:new", handleNewComment)
+  //   socket.on("comment:updated", handleCommentUpdated)
+  //   socket.on("comment:deleted", handleCommentDeleted)
 
-    return () => {
-      socket.off("comment:new", handleNewComment)
-      socket.off("comment:updated", handleCommentUpdated)
-      socket.off("comment:deleted", handleCommentDeleted)
-    }
-  }, [socket, entityId, entityType])
+  //   return () => {
+  //     socket.off("comment:new", handleNewComment)
+  //     socket.off("comment:updated", handleCommentUpdated)
+  //     socket.off("comment:deleted", handleCommentDeleted)
+  //   }
+  // }, [socket, entityId, entityType])
 
   const addReplyToComments = (comments: Comment[], reply: Comment): Comment[] => {
     return comments.map(comment => {

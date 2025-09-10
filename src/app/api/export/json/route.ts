@@ -30,13 +30,13 @@ export async function GET(request: NextRequest) {
         where: { userId },
         include: {
           todos: {
-            orderBy: { createdAt: 'asc' }
+            orderBy: { createdAt: 'asc' as const }
           },
           attachments: {
-            orderBy: { createdAt: 'asc' }
+            orderBy: { createdAt: 'asc' as const }
           }
         },
-        orderBy: { createdAt: 'asc' }
+        orderBy: { createdAt: 'asc' as const }
       }),
       db.sparkConnection.findMany({
         where: {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
           spark1: { select: { title: true } },
           spark2: { select: { title: true } }
         },
-        orderBy: { createdAt: 'asc' }
+        orderBy: { createdAt: 'asc' as const }
       }),
       db.userAchievement.findMany({
         where: { userId },
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        orderBy: { unlockedAt: 'desc' }
+        orderBy: { unlockedAt: 'desc' as const }
       }),
       db.userPreferences.findUnique({
         where: { userId }
@@ -174,15 +174,15 @@ export async function POST(request: NextRequest) {
       where: { userId },
       include: {
         todos: {
-          orderBy: { createdAt: 'asc' }
+          orderBy: { createdAt: 'asc' as const }
         },
         ...(includeAttachments && {
           attachments: {
-            orderBy: { createdAt: 'asc' }
+            orderBy: { createdAt: 'asc' as const }
           }
         })
       },
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' as const }
     }
 
     const [user, sparks, connections, achievements, userPreferences] = await Promise.all([
@@ -197,14 +197,14 @@ export async function POST(request: NextRequest) {
             { spark2: { userId } }
           ]
         },
-        orderBy: { createdAt: 'asc' }
+        orderBy: { createdAt: 'asc' as const }
       }),
       db.userAchievement.findMany({
         where: { userId },
         include: {
           achievement: true
         },
-        orderBy: { unlockedAt: 'desc' }
+        orderBy: { unlockedAt: 'desc' as const }
       }),
       db.userPreferences.findUnique({
         where: { userId }

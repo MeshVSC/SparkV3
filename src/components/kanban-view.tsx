@@ -34,7 +34,7 @@ function shouldHandleEvent(event: PointerEvent): boolean {
   let cur = event.target as Element;
 
   while (cur) {
-    if (cur.dataset && cur.dataset.noDnd) {
+    if ((cur as HTMLElement).dataset && (cur as HTMLElement).dataset.noDnd) {
       return false;
     }
     cur = cur.parentElement!;

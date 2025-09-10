@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
         data: {
           email: "default@example.com",
           name: "Default User",
-          xp: 0,
+          totalXP: 0,
           level: 1,
         },
       })

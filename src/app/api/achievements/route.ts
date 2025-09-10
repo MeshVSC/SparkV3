@@ -9,7 +9,7 @@ const ACHIEVEMENTS = [
     description: "Create your first spark",
     icon: "🌱",
     xpReward: 50,
-    type: "MILESTONE"
+    type: "MILESTONE" as const
   },
   {
     id: "idea-factory",
@@ -17,7 +17,7 @@ const ACHIEVEMENTS = [
     description: "Create 10 sparks",
     icon: "🏭",
     xpReward: 100,
-    type: "MILESTONE"
+    type: "MILESTONE" as const
   },
   {
     id: "visionary",
@@ -25,7 +25,7 @@ const ACHIEVEMENTS = [
     description: "Create 100 sparks",
     icon: "🔮",
     xpReward: 500,
-    type: "MILESTONE"
+    type: "MILESTONE" as const
   },
   {
     id: "seedling-gardener",
@@ -33,7 +33,7 @@ const ACHIEVEMENTS = [
     description: "Grow 5 sparks to sapling",
     icon: "🌿",
     xpReward: 75,
-    type: "MILESTONE"
+    type: "MILESTONE" as const
   },
   {
     id: "forest-maker",
@@ -41,7 +41,7 @@ const ACHIEVEMENTS = [
     description: "Grow a spark to forest level",
     icon: "🌲",
     xpReward: 200,
-    type: "MILESTONE"
+    type: "MILESTONE" as const
   },
   {
     id: "evolution-master",
@@ -49,7 +49,7 @@ const ACHIEVEMENTS = [
     description: "Complete full spark lifecycle (seedling → forest)",
     icon: "🔄",
     xpReward: 300,
-    type: "MILESTONE"
+    type: "MILESTONE" as const
   },
   {
     id: "daily-thinker",
@@ -57,7 +57,7 @@ const ACHIEVEMENTS = [
     description: "7 day login streak",
     icon: "📅",
     xpReward: 150,
-    type: "STREAK"
+    type: "STREAK" as const
   },
   {
     id: "consistency-king",
@@ -65,7 +65,7 @@ const ACHIEVEMENTS = [
     description: "30 day streak",
     icon: "👑",
     xpReward: 500,
-    type: "STREAK"
+    type: "STREAK" as const
   },
   {
     id: "unstoppable",
@@ -73,7 +73,7 @@ const ACHIEVEMENTS = [
     description: "100 day streak",
     icon: "🚀",
     xpReward: 1000,
-    type: "STREAK"
+    type: "STREAK" as const
   },
   {
     id: "connector",
@@ -81,7 +81,7 @@ const ACHIEVEMENTS = [
     description: "Link 10 sparks together",
     icon: "🔗",
     xpReward: 125,
-    type: "COLLECTION"
+    type: "COLLECTION" as const
   },
   {
     id: "board-master",
@@ -89,7 +89,7 @@ const ACHIEVEMENTS = [
     description: "Create 5 different boards",
     icon: "📋",
     xpReward: 175,
-    type: "COLLECTION"
+    type: "COLLECTION" as const
   },
   {
     id: "archive-keeper",
@@ -97,7 +97,7 @@ const ACHIEVEMENTS = [
     description: "Organize 50 completed sparks",
     icon: "📚",
     xpReward: 250,
-    type: "COLLECTION"
+    type: "COLLECTION" as const
   },
   {
     id: "task-master",
@@ -105,7 +105,7 @@ const ACHIEVEMENTS = [
     description: "Complete 100 todos",
     icon: "✅",
     xpReward: 300,
-    type: "MILESTONE"
+    type: "MILESTONE" as const
   },
   {
     id: "file-collector",
@@ -113,7 +113,7 @@ const ACHIEVEMENTS = [
     description: "Attach 50 files to sparks",
     icon: "📁",
     xpReward: 200,
-    type: "COLLECTION"
+    type: "COLLECTION" as const
   },
   {
     id: "tag-expert",
@@ -121,7 +121,7 @@ const ACHIEVEMENTS = [
     description: "Use 100 different tags",
     icon: "🏷️",
     xpReward: 150,
-    type: "COLLECTION"
+    type: "COLLECTION" as const
   }
 ]
 
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
         data: {
           email: "default@example.com",
           name: "Default User",
-          xp: 0,
+          totalXP: 0,
           level: 1,
         },
       })
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
         data: {
           email: "default@example.com",
           name: "Default User",
-          xp: 0,
+          totalXP: 0,
           level: 1,
         },
       })
@@ -260,8 +260,8 @@ export async function POST(request: NextRequest) {
     const updatedUser = await db.user.update({
       where: { id: user.id },
       data: {
-        xp: user.xp + achievement.xpReward,
-        level: Math.floor((user.xp + achievement.xpReward) / 100) + 1,
+        totalXP: user.totalXP + achievement.xpReward,
+        level: Math.floor((user.totalXP + achievement.xpReward) / 100) + 1,
       },
     })
 

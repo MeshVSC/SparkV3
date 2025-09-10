@@ -14,14 +14,15 @@ interface AddTodoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onAddTodo: (todo: Omit<Todo, "id" | "createdAt">) => Promise<void>
+  sparkId: string
 }
 
-export function AddTodoDialog({ open, onOpenChange, onAddTodo }: AddTodoDialogProps) {
+export function AddTodoDialog({ open, onOpenChange, onAddTodo, sparkId }: AddTodoDialogProps) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    type: "GENERAL" as TodoType,
-    priority: "MEDIUM" as TodoPriority,
+    type: TodoType.GENERAL,
+    priority: TodoPriority.MEDIUM,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -33,6 +34,7 @@ export function AddTodoDialog({ open, onOpenChange, onAddTodo }: AddTodoDialogPr
     setIsSubmitting(true)
     try {
       await onAddTodo({
+        sparkId,
         title: formData.title.trim(),
         description: formData.description.trim() || "",
         type: formData.type,
@@ -44,8 +46,8 @@ export function AddTodoDialog({ open, onOpenChange, onAddTodo }: AddTodoDialogPr
       setFormData({
         title: "",
         description: "",
-        type: "GENERAL",
-        priority: "MEDIUM",
+        type: TodoType.GENERAL,
+        priority: TodoPriority.MEDIUM,
       })
       
       onOpenChange(false)

@@ -64,25 +64,21 @@ export class SparkMCPServer {
               {
                 title: {
                   contains: searchQuery,
-                  mode: "insensitive"
                 }
               },
               {
                 description: {
                   contains: searchQuery,
-                  mode: "insensitive"
                 }
               },
               {
                 content: {
                   contains: searchQuery,
-                  mode: "insensitive"
                 }
               },
               {
                 tags: {
                   contains: searchQuery,
-                  mode: "insensitive"
                 }
               }
             ]
@@ -128,7 +124,7 @@ export class SparkMCPServer {
           data: {
             email: "default@example.com",
             name: "Default User",
-            xp: 0,
+            totalXP: 0,
             level: 1
           }
         })
@@ -309,7 +305,7 @@ export class SparkMCPServer {
         data: {
           sparkId1,
           sparkId2,
-          type: type || "RELATED_TO",
+          type: (type as any) || "RELATED_TO",
           metadata: metadata || null
         }
       })
@@ -390,7 +386,7 @@ export class SparkMCPServer {
 
   async getSparkStats(): Promise<{
     totalSparks: number
-    totalXP: number
+    xp: number
     averageLevel: number
     completedTodos: number
     totalTodos: number
@@ -418,7 +414,7 @@ export class SparkMCPServer {
 
       return {
         totalSparks,
-        totalXP,
+        xp: totalXP,
         averageLevel,
         completedTodos,
         totalTodos,

@@ -138,6 +138,10 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
     }
   }, [filters, user?.id, filteredSparks.length])
 
+  const updateFilters = useCallback((updates: Partial<SearchFilters>) => {
+    setFilters(prev => ({ ...prev, ...updates }))
+  }, [])
+
   const handleQueryChange = useCallback((value: string) => {
     updateFilters({ query: value })
   }, [updateFilters])
@@ -146,10 +150,6 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
   useEffect(() => {
     onFiltersChange(filteredSparks)
   }, [filteredSparks, onFiltersChange])
-
-  const updateFilters = useCallback((updates: Partial<SearchFilters>) => {
-    setFilters(prev => ({ ...prev, ...updates }))
-  }, [])
 
   const addTag = useCallback((tag: string) => {
     if (!filters.tags.includes(tag)) {

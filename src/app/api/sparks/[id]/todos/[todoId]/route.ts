@@ -100,14 +100,16 @@ export async function PUT(
     // Check for achievements when completing a todo
     if (isCompleted && !wasCompleted && spark) {
       try {
-        await AchievementEngine.checkAndAwardAchievements({
-          type: "TODO_COMPLETED",
-          userId: spark.userId,
-          data: { 
-            sparkId: params.id, 
-            todoId: params.todoId 
+        await AchievementEngine.checkAndAwardAchievements(
+          spark.userId,
+          {
+            type: "TODO_COMPLETED",
+            data: { 
+              sparkId: params.id, 
+              todoId: params.todoId 
+            }
           }
-        })
+        )
       } catch (achievementError) {
         console.error("Error checking achievements:", achievementError)
         // Don't fail the todo update if achievement checking fails

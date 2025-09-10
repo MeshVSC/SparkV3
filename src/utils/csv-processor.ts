@@ -54,8 +54,6 @@ export function parseCsvString<T = any>(
       skipEmptyLines,
       transformHeader,
       transform,
-      complete: (results) => results,
-      error: (error) => error,
     });
 
     if (parseResult.errors.length > 0) {
@@ -201,7 +199,7 @@ export function objectArrayToCsv<T extends Record<string, any>>(
           mappedItem[displayKey] = item[originalKey];
         });
         return mappedItem;
-      });
+      }) as T[];
     }
 
     return stringifyToCsv(processedData, options);

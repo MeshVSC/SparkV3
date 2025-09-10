@@ -1,5 +1,5 @@
 import { NotificationData, NotificationDelivery, NotificationChannel, NotificationChannelHandler } from '@/types/notification';
-import { socketClient } from '@/lib/socket-client';
+// import { socketClient } from '@/lib/socket-client';
 
 export class InAppChannelHandler implements NotificationChannelHandler {
   channel = NotificationChannel.IN_APP;
@@ -7,9 +7,9 @@ export class InAppChannelHandler implements NotificationChannelHandler {
   async send(notification: NotificationData, delivery: NotificationDelivery): Promise<boolean> {
     try {
       // If socket client is connected, send real-time notification
-      if (socketClient.isConnected()) {
-        this.sendRealTimeNotification(notification);
-      }
+      // if (socketClient.isConnected()) {
+      //   this.sendRealTimeNotification(notification);
+      // }
 
       // Store notification for retrieval when user is offline or on different session
       await this.storeInAppNotification(notification);
@@ -21,25 +21,25 @@ export class InAppChannelHandler implements NotificationChannelHandler {
     }
   }
 
-  private sendRealTimeNotification(notification: NotificationData): void {
-    // Emit a custom event for in-app notifications
-    if (socketClient.getConnectionStatus() === 'connected') {
-      // Use the existing socket to emit notification event
-      // This would require extending the socket events to support notifications
-      const socket = (socketClient as any).socket;
-      if (socket) {
-        socket.emit('notification', {
-          id: notification.id,
-          type: notification.type,
-          title: notification.title,
-          message: notification.message,
-          data: notification.data,
-          timestamp: notification.createdAt.toISOString(),
-          userId: notification.userId
-        });
-      }
-    }
-  }
+  // private sendRealTimeNotification(notification: NotificationData): void {
+  //   // Emit a custom event for in-app notifications
+  //   if (socketClient.getConnectionStatus() === 'connected') {
+  //     // Use the existing socket to emit notification event
+  //     // This would require extending the socket events to support notifications
+  //     const socket = (socketClient as any).socket;
+  //     if (socket) {
+  //       socket.emit('notification', {
+  //         id: notification.id,
+  //         type: notification.type,
+  //         title: notification.title,
+  //         message: notification.message,
+  //         data: notification.data,
+  //         timestamp: notification.createdAt.toISOString(),
+  //         userId: notification.userId
+  //       });
+  //     }
+  //   }
+  // }
 
   private async storeInAppNotification(notification: NotificationData): Promise<void> {
     // In a production app, this would store the notification in a database

@@ -28,7 +28,7 @@ import {
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { socketClient } from "@/lib/socket-client"
+// import { socketClient } from "@/lib/socket-client"
 
 interface User {
   id: string
@@ -80,15 +80,15 @@ export function WorkspaceManagement() {
       fetchWorkspaces()
     }
 
-    socketClient.addEventListener('workspace_invitation', handleWorkspaceUpdate)
-    socketClient.addEventListener('role_updated', handleWorkspaceUpdate)
-    socketClient.addEventListener('workspace_removed', handleWorkspaceUpdate)
+    // socketClient.addEventListener('workspace_invitation', handleWorkspaceUpdate)
+    // socketClient.addEventListener('role_updated', handleWorkspaceUpdate)
+    // socketClient.addEventListener('workspace_removed', handleWorkspaceUpdate)
 
-    return () => {
-      socketClient.removeEventListener('workspace_invitation', handleWorkspaceUpdate)
-      socketClient.removeEventListener('role_updated', handleWorkspaceUpdate)
-      socketClient.removeEventListener('workspace_removed', handleWorkspaceUpdate)
-    }
+    // return () => {
+    //   socketClient.removeEventListener('workspace_invitation', handleWorkspaceUpdate)
+    //   socketClient.removeEventListener('role_updated', handleWorkspaceUpdate)
+    //   socketClient.removeEventListener('workspace_removed', handleWorkspaceUpdate)
+    // }
   }, [])
 
   const fetchWorkspaces = async () => {

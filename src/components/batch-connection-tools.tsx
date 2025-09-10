@@ -209,7 +209,7 @@ export function BatchConnectionTools({ isVisible, onClose }: BatchConnectionTool
               checked={selectedSparks.size === filteredSparks.length && filteredSparks.length > 0}
               onCheckedChange={handleSelectAll}
               ref={(el) => {
-                if (el) el.indeterminate = selectedSparks.size > 0 && selectedSparks.size < filteredSparks.length
+                if (el) (el as any).indeterminate = selectedSparks.size > 0 && selectedSparks.size < filteredSparks.length
               }}
             />
             <span className="text-sm font-medium">

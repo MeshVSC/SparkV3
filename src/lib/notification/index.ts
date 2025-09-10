@@ -12,7 +12,7 @@ export * from '@/types/notification';
 
 // Hooks and components
 export { useNotifications, useNotificationPermission } from '@/hooks/useNotifications';
-export { NotificationCenter } from '@/components/notifications/NotificationCenter';
+// export { NotificationCenter } from '@/components/notifications/NotificationCenter';
 
 // Utility functions
 export const createNotification = (
@@ -22,11 +22,11 @@ export const createNotification = (
   message: string,
   data?: Record<string, any>
 ) => {
-  return notificationService.emitEvent(type, userId, {
-    title,
-    message,
-    ...data
-  });
+  // return notificationService.emitEvent(type, userId, {
+  //   title,
+  //   message,
+  //   ...data
+  // });
 };
 
 export const createImmediateNotification = (
@@ -38,31 +38,31 @@ export const createImmediateNotification = (
   priority: any = 2,
   data?: Record<string, any>
 ) => {
-  return notificationService.createNotification({
-    userId,
-    type,
-    title,
-    message,
-    channels,
-    priority,
-    data
-  });
+  // return notificationService.createNotification({
+  //   userId,
+  //   type,
+  //   title,
+  //   message,
+  //   channels,
+  //   priority,
+  //   data
+  // });
 };
 
 // Event helpers for common notification patterns
 export const notifySparkUpdate = (userId: string, sparkId: string, sparkTitle: string, changeType: string) => {
-  return notificationService.emitEvent('spark_updated', userId, {
-    sparkId,
-    sparkTitle,
-    changeType
-  });
+  // return notificationService.emitEvent('spark_updated', userId, {
+  //   sparkId,
+  //   sparkTitle,
+  //   changeType
+  // });
 };
 
 export const notifyAchievementUnlocked = (userId: string, achievementId: string, achievementName: string) => {
-  return notificationService.emitEvent('achievement_unlocked', userId, {
-    achievementId,
-    achievementName
-  });
+  // return notificationService.emitEvent('achievement_unlocked', userId, {
+  //   achievementId,
+  //   achievementName
+  // });
 };
 
 export const notifyCollaborationInvite = (
@@ -72,12 +72,12 @@ export const notifyCollaborationInvite = (
   inviterId: string, 
   inviterName: string
 ) => {
-  return notificationService.emitEvent('collaboration_invite', invitedUserId, {
-    sparkId,
-    sparkTitle,
-    inviterId,
-    inviterName
-  });
+  // return notificationService.emitEvent('collaboration_invite', invitedUserId, {
+  //   sparkId,
+  //   sparkTitle,
+  //   inviterId,
+  //   inviterName
+  // });
 };
 
 export const notifyCollaborationAction = (
@@ -87,11 +87,11 @@ export const notifyCollaborationAction = (
   userName: string, 
   action: string
 ) => {
-  return notificationService.emitEvent('collaboration_action', userId, {
-    sparkId,
-    sparkTitle,
-    userId,
-    userName,
-    action
-  });
+  // return notificationService.emitEvent('collaboration_action', userId, {
+  //   sparkId,
+  //   sparkTitle,
+  //   userId,
+  //   userName,
+  //   action
+  // });
 };

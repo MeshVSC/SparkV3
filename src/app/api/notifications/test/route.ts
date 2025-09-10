@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         };
         notificationId = await notificationService.createNotification({
           userId,
-          type: 'spark_updated',
+          type: 'SPARK_UPDATE' as any,
           title: 'Spark Updated',
           message: `Your spark "${eventData.sparkTitle}" has been updated`,
           channels: includeEmail ? ['in_app', 'email'] as any : ['in_app'] as any,
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         };
         notificationId = await notificationService.createNotification({
           userId,
-          type: 'collaboration_invite',
+          type: 'COLLABORATION' as any,
           title: 'Collaboration Invite',
           message: `${eventData.inviterName} invited you to collaborate on "${eventData.sparkTitle}"`,
           channels: includeEmail ? ['in_app', 'email'] as any : ['in_app'] as any,
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         };
         notificationId = await notificationService.createNotification({
           userId,
-          type: 'mention',
+          type: 'COLLABORATION' as any,
           title: 'You were mentioned',
           message: `${eventData.mentionerName} mentioned you in "${eventData.sparkTitle}"`,
           channels: includeEmail ? ['in_app', 'email'] as any : ['in_app'] as any,
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         };
         notificationId = await notificationService.createNotification({
           userId,
-          type: 'achievement_unlocked',
+          type: 'ACHIEVEMENT' as any,
           title: 'Achievement Unlocked!',
           message: `Congratulations! You've unlocked "${eventData.achievementName}"`,
           channels: includeEmail ? ['in_app', 'push'] as any : ['in_app'] as any,
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: 'Validation error',
-        details: error.errors
+        details: error.issues
       }, { status: 400 });
     }
 

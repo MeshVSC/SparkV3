@@ -137,7 +137,7 @@ export class GamificationService {
         }
       })
 
-      const newlyUnlocked = []
+      const newlyUnlocked: any[] = []
 
       for (const achievement of allAchievements) {
         let shouldUnlock = false

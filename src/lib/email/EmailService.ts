@@ -39,7 +39,7 @@ export class EmailService extends EventEmitter {
     this.config = config;
     
     if (config.provider === 'smtp') {
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         host: config.host,
         port: config.port,
         secure: config.secure || false,
@@ -49,7 +49,7 @@ export class EmailService extends EventEmitter {
         } : undefined
       });
     } else if (config.provider === 'sendgrid') {
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         service: 'SendGrid',
         auth: {
           user: 'apikey',
@@ -57,12 +57,12 @@ export class EmailService extends EventEmitter {
         }
       });
     } else if (config.provider === 'mailgun') {
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         host: 'smtp.mailgun.org',
         port: 587,
         secure: false,
         auth: {
-          user: `postmaster@${config.domain}`,
+          user: `postmaster@${(config as any).domain}`,
           pass: config.apiKey
         }
       });
@@ -206,7 +206,7 @@ export class EmailService extends EventEmitter {
       id: uuidv4(),
       notificationId: email.id,
       channel: NotificationChannel.EMAIL,
-      status: DeliveryStatus.PROCESSING,
+      status: 'PROCESSING' as DeliveryStatus,
       attempts: email.attempts + 1,
       lastAttemptAt: new Date(),
       createdAt: new Date(),
@@ -220,16 +220,16 @@ export class EmailService extends EventEmitter {
 
       const result = await this.transporter.sendMail(mailOptions);
       
-      delivery.status = DeliveryStatus.DELIVERED;
+      delivery.status = 'DELIVERED' as DeliveryStatus;
       delivery.deliveredAt = new Date();
-      delivery.providerMessageId = result.messageId;
+      (delivery as any).providerMessageId = result.messageId;
       
       this.stats.sent++;
       this.stats.processing--;
       
       this.emit('email_sent', { email, delivery, result });
     } catch (error) {
-      delivery.status = DeliveryStatus.FAILED;
+      delivery.status = 'FAILED' as DeliveryStatus;
       delivery.errorMessage = (error as Error).message;
       
       this.stats.failed++;

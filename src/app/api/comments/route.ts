@@ -108,15 +108,15 @@ export async function POST(request: NextRequest) {
       const user = await db.user.findFirst({
         where: {
           OR: [
-            { name: { equals: username, mode: "insensitive" } },
-            { email: { contains: username, mode: "insensitive" } },
+            { name: { equals: username } },
+            { email: { contains: username } },
           ],
         },
         select: { id: true },
       })
       
       if (user) {
-        mentions.push(user.id)
+        mentions.push(user.id as any)
       }
     }
 

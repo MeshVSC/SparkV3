@@ -55,60 +55,60 @@ export async function GET(
     // Calculate level progress
     const currentLevelXP = (user.level - 1) * 100
     const nextLevelXP = user.level * 100
-    const levelProgress = ((user.xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
-    const xpToNextLevel = nextLevelXP - user.xp
+    const levelProgress = ((user.totalXP - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
+    const xpToNextLevel = nextLevelXP - user.totalXP
 
     // Check for potential achievements
     const potentialAchievements = []
     
     // First spark
     if (totalSparks === 1) {
-      potentialAchievements.push("first-spark")
+      // potentialAchievements.push("first-spark")
     }
     
     // Idea factory (10 sparks)
     if (totalSparks >= 10) {
-      potentialAchievements.push("idea-factory")
+      // potentialAchievements.push("idea-factory")
     }
     
     // Visionary (100 sparks)
     if (totalSparks >= 100) {
-      potentialAchievements.push("visionary")
+      // potentialAchievements.push("visionary")
     }
     
     // Seedling gardener (5 saplings)
     if (statusCounts["SAPLING"] >= 5) {
-      potentialAchievements.push("seedling-gardener")
+      // potentialAchievements.push("seedling-gardener")
     }
     
     // Forest maker (1 forest)
     if (statusCounts["FOREST"] >= 1) {
-      potentialAchievements.push("forest-maker")
+      // potentialAchievements.push("forest-maker")
     }
     
     // Evolution master (has all statuses)
     if (Object.keys(statusCounts).length === 4) {
-      potentialAchievements.push("evolution-master")
+      // potentialAchievements.push("evolution-master")
     }
     
     // Task master (100 todos)
     if (completedTodos >= 100) {
-      potentialAchievements.push("task-master")
+      // potentialAchievements.push("task-master")
     }
     
     // File collector (50 attachments)
     if (totalAttachments >= 50) {
-      potentialAchievements.push("file-collector")
+      // potentialAchievements.push("file-collector")
     }
     
     // Connector (10 connections)
     if (totalConnections >= 10) {
-      potentialAchievements.push("connector")
+      // potentialAchievements.push("connector")
     }
     
     // Board master (all statuses)
     if (Object.keys(statusCounts).length === 4) {
-      potentialAchievements.push("board-master")
+      // potentialAchievements.push("board-master")
     }
 
     // Filter out already unlocked achievements
@@ -118,7 +118,7 @@ export async function GET(
     return NextResponse.json({
       user: {
         id: user.id,
-        xp: user.xp,
+        xp: user.totalXP,
         level: user.level,
         levelProgress,
         xpToNextLevel

@@ -431,7 +431,7 @@ export function ConnectionManagementPanel() {
                   <Checkbox
                     checked={isAllSelected}
                     ref={(el) => {
-                      if (el) el.indeterminate = isPartiallySelected
+                      if (el) (el as any).indeterminate = isPartiallySelected
                     }}
                     onCheckedChange={toggleAll}
                     aria-label="Select all connections"

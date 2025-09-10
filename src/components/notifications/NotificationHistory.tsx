@@ -22,7 +22,7 @@ import {
 import {
   Bell,
   Check,
-  CheckAll,
+  CheckCircle,
   X,
   Filter,
   Search,

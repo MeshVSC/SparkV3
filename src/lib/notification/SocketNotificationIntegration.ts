@@ -83,7 +83,7 @@ export class SocketNotificationIntegration {
             data.type as any,
             data.title,
             data.message,
-            ['in_app'],
+            [NotificationChannel.IN_APP],
             data.priority as any || 'medium',
             data.data
           );
@@ -105,13 +105,13 @@ export class SocketNotificationIntegration {
         console.log('Notification acknowledged:', data.notificationId, 'by user:', data.userId);
         
         // Update notification delivery status if using the notification service
-        notificationService.updateDeliveryStatus(data.notificationId, 'acknowledged');
+        // notificationService.updateDeliveryStatus(data.notificationId, 'acknowledged');
         
         // Emit acknowledgment event for analytics
-        notificationService.emitEvent('notification_acknowledged', data.userId, {
-          notificationId: data.notificationId,
-          acknowledgedAt: new Date().toISOString()
-        });
+        // notificationService.emitEvent('notification_acknowledged', data.userId, {
+        //   notificationId: data.notificationId,
+        //   acknowledgedAt: new Date().toISOString()
+        // });
       });
 
       // Handle user status updates for targeted notifications
@@ -195,7 +195,7 @@ export class SocketNotificationIntegration {
         userId: userId,
         data: notification.data,
         priority: notification.priority || 'medium',
-        channels: ['in_app'],
+        channels: [NotificationChannel.IN_APP],
         timestamp: notification.timestamp || new Date().toISOString()
       });
     } else {
@@ -218,7 +218,7 @@ export class SocketNotificationIntegration {
         userId: 'system',
         data: { ...notification.data, workspaceId },
         priority: notification.priority || 'medium',
-        channels: ['in_app'],
+        channels: [NotificationChannel.IN_APP],
         timestamp: notification.timestamp || new Date().toISOString()
       });
     } else {

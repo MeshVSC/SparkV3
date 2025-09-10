@@ -100,7 +100,7 @@ export default function SignIn() {
 
             {/* Sign In Tab */}
             <TabsContent value="signin" className="space-y-4">
-              <SignInForm onSuccess={(userId) => handleAuthSuccess(userId, true)} />
+              <SignInForm onSuccess={(userId?: string) => handleAuthSuccess(userId, true)} />
               
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">

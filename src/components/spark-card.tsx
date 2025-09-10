@@ -26,7 +26,7 @@ import {
 import { useSpark } from "@/contexts/spark-context"
 import { SparkDetailDialog } from "@/components/spark-detail-dialog"
 import { CommentSection } from "@/components/ui/comment-section"
-import { SparkCollaborationIndicator } from "@/components/collaboration/spark-collaboration-indicator"
+// import { SparkCollaborationIndicator } from "@/components/collaboration/spark-collaboration-indicator"
 
 interface SparkCardProps {
   spark: Spark
@@ -161,7 +161,7 @@ export function SparkCard({ spark, isSelected, onClick, isDragging = false }: Sp
             </div>
             
             {/* Collaboration indicator */}
-            <SparkCollaborationIndicator sparkId={spark.id} />
+            {/* <SparkCollaborationIndicator sparkId={spark.id} /> */}
           </div>
         </CardHeader>
 

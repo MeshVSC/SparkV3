@@ -121,11 +121,11 @@ export function AttachmentUpload({
   const getAttachmentIcon = (type: AttachmentType, filename: string) => {
     switch (type) {
       case AttachmentType.IMAGE:
-        return <Image className="h-4 w-4" alt="Image icon" />
+        return <Image className="h-4 w-4" />
       case AttachmentType.LINK:
-        return <Link className="h-4 w-4" alt="Link icon" />
+        return <Link className="h-4 w-4" />
       default:
-        return <File className="h-4 w-4" alt="File icon" />
+        return <File className="h-4 w-4" />
     }
   }
 

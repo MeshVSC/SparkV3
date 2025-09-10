@@ -35,7 +35,7 @@ export async function PUT(
 
     // Extract mentions from updated content
     const mentionRegex = /@(\w+)/g
-    const mentions = []
+    const mentions: string[] = []
     let match
 
     while ((match = mentionRegex.exec(content)) !== null) {
@@ -43,8 +43,8 @@ export async function PUT(
       const user = await db.user.findFirst({
         where: {
           OR: [
-            { name: { equals: username, mode: "insensitive" } },
-            { email: { contains: username, mode: "insensitive" } },
+            { name: { equals: username } },
+            { email: { contains: username } },
           ],
         },
         select: { id: true },
