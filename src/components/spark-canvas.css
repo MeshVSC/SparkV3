@@ -1,0 +1,95 @@
+/* Touch-optimized styles for SparkCanvas */
+
+.touch-target {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure all interactive elements meet touch target requirements */
+.touch-target button,
+.touch-target [role="button"],
+.touch-target .clickable {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px;
+}
+
+/* Enhanced visual feedback for touch interactions */
+.touch-target:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Improved connection handles for touch */
+.connection-handle {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.connection-handle::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: currentColor;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.connection-handle:hover::before,
+.connection-handle:focus::before {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* Smooth transforms for gesture interactions */
+.gesture-transform {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gesture-transform.no-transition {
+  transition: none;
+}
+
+/* Visual feedback for pinch zoom bounds */
+.zoom-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+/* Loading state for momentum scrolling */
+.momentum-scrolling {
+  pointer-events: none;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .gesture-transform,
+  .touch-target:active {
+    transition: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .connection-handle::before {
+    border: 2px solid currentColor;
+    background: transparent;
+  }
+}
