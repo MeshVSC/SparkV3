@@ -1,6 +1,6 @@
-# 🚀 Welcome to Z.ai Code Scaffold
+# 🚀 Spark Collaborative Editing System
 
-A modern, production-ready web application scaffold powered by cutting-edge technologies, designed to accelerate your development with 
+A modern, production-ready web application with real-time collaborative editing capabilities for spark content management. Built with advanced operational transformation algorithms to handle conflict resolution when multiple users edit the same content simultaneously. 
 ## ✨ Technology Stack
 
 This scaffold provides a robust foundation built with:
@@ -18,6 +18,14 @@ This scaffold provides a robust foundation built with:
 
 ### 📋 Forms & Validation
 - **🎣 React Hook Form** - Performant forms with easy validation
+
+### 🤝 Collaborative Features
+- **⚡ Real-time Collaborative Editing** - Multi-user simultaneous content editing
+- **🔄 Operational Transformation** - Advanced conflict resolution algorithms
+- **⏰ Vector Clocks** - Logical time tracking for operation ordering
+- **📡 Socket.IO** - Real-time bidirectional communication
+- **🔄 Operation Queuing** - Reliable operation delivery and acknowledgment
+- **📊 Participant Management** - Live collaboration session tracking
 - **✅ Zod** - TypeScript-first schema validation
 
 ### 🔄 State Management & Data Fetching
