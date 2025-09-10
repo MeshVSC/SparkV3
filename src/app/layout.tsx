@@ -8,6 +8,8 @@ import { GuestProvider } from "@/contexts/guest-context";
 import { SearchProvider } from "@/contexts/search-context";
 import { UserProvider } from "@/contexts/user-context";
 import { ToastNotification } from "@/components/notifications/NotificationToast";
+import { SparkCollaborationProvider } from "@/components/collaboration/presence-provider";
+import { getSocket } from "@/lib/socket-client";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,11 +54,13 @@ export default function RootLayout({
           <AuthProvider>
             <UserProvider>
               <SearchProvider>
-                <AchievementProvider>
-                  {children}
-                  <Toaster />
-                  <ToastNotification useIntegratedToast={true} />
-                </AchievementProvider>
+                <SparkCollaborationProvider socket={getSocket()}>
+                  <AchievementProvider>
+                    {children}
+                    <Toaster />
+                    <ToastNotification useIntegratedToast={true} />
+                  </AchievementProvider>
+                </SparkCollaborationProvider>
               </SearchProvider>
             </UserProvider>
           </AuthProvider>
