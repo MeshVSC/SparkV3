@@ -6,7 +6,7 @@ const sendEmailSchema = z.object({
   to: z.union([z.string().email(), z.array(z.string().email())]),
   subject: z.string().min(1),
   template: z.string().min(1),
-  data: z.record(z.any()).optional().default({}),
+  data: z.record(z.string(), z.any()).optional().default({}),
   priority: z.enum(['high', 'medium', 'low']).optional().default('medium'),
   scheduledAt: z.string().datetime().optional()
 });

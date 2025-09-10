@@ -46,7 +46,7 @@ export function UserMenu({ onProfileClick, onSettingsClick }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={session.user.avatar || ""} alt={session.user.name || ""} />
+            <AvatarImage src={(session.user as any).image || ""} alt={session.user.name || session.user.email || ""} />
             <AvatarFallback className="text-sm">
               {userInitials}
             </AvatarFallback>
@@ -82,7 +82,7 @@ export function UserMenu({ onProfileClick, onSettingsClick }: UserMenuProps) {
           <span>Progress</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => signOut({ callbackUrl: "/auth/signin" })}
           className="text-red-600"
         >

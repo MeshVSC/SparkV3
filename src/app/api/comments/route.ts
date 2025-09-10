@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     // Extract mentions from content
     const mentionRegex = /@(\w+)/g
-    const mentions = []
+    const mentions: string[] = []
     let match
 
     while ((match = mentionRegex.exec(content)) !== null) {
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       })
       
       if (user) {
-        mentions.push(user.id as any)
+        mentions.push(user.id)
       }
     }
 

@@ -11,7 +11,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/auth/signin",
-    signUp: "/auth/signup",
   },
   providers: [
     CredentialsProvider({
@@ -20,7 +19,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           return null
         }
@@ -57,11 +56,11 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-          avatar: user.avatar,
+          image: user.avatar,
           totalXP: user.totalXP,
           level: user.level,
           currentStreak: user.currentStreak,
-          preferences: user.preferences,
+          preferences: user.preferences ?? undefined,
         }
       },
     }),
@@ -69,11 +68,17 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.totalXP = user.totalXP
-        token.level = user.level
-        token.currentStreak = user.currentStreak
-        token.preferences = user.preferences
+        const dbUserFull = await db.user.findUnique({
+          where: { email: user.email as string },
+          include: { preferences: true },
+        })
+        if (dbUserFull) {
+          token.id = dbUserFull.id
+          token.totalXP = dbUserFull.totalXP
+          token.level = dbUserFull.level
+          token.currentStreak = dbUserFull.currentStreak
+          token.preferences = dbUserFull.preferences ?? undefined
+        }
       }
       return token
     },

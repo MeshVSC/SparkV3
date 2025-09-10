@@ -32,14 +32,14 @@ export class AchievementService {
         acc[spark.status] = (acc[spark.status] || 0) + 1
         return acc
       }, {} as Record<string, number>)
-      const completedTodos = sparks.reduce((sum, spark) => 
+      const completedTodos = sparks.reduce((sum, spark) =>
         sum + (spark.todos?.filter(todo => todo.completed).length || 0), 0
       )
       const totalAttachments = sparks.reduce((sum, spark) => sum + (spark.attachments?.length || 0), 0)
       const totalConnections = sparks.reduce((sum, spark) => sum + (spark.connections?.length || 0), 0)
 
       // Check achievements based on action
-      const achievementsToUnlock = []
+      const achievementsToUnlock: string[] = []
 
       switch (action) {
         case "create_spark":
@@ -92,7 +92,7 @@ export class AchievementService {
           await db.user.update({
             where: { id: userId },
             data: {
-              xp: {
+              totalXP: {
                 increment: achievement.xpReward
               }
             }
@@ -102,9 +102,9 @@ export class AchievementService {
           const updatedUser = await db.user.findUnique({
             where: { id: userId }
           })
-          
+
           if (updatedUser) {
-            const newLevel = Math.floor(updatedUser.xp / 100) + 1
+            const newLevel = Math.floor(updatedUser.totalXP / 100) + 1
             if (newLevel > updatedUser.level) {
               await db.user.update({
                 where: { id: userId },

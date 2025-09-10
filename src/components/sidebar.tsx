@@ -380,7 +380,7 @@ export function Sidebar() {
                 <ExportDropdown
                   projectName="My Spark Project"
                   sparks={displaySparks}
-                  connections={state.connections}
+                  connections={state.sparks.flatMap(spark => spark.connections || [])}
                 />
                 <Button variant="outline" size="sm" className="w-full justify-start">
                   <Settings className="h-3 w-3 mr-2" />

@@ -7,9 +7,10 @@ export interface EmailTemplate {
 }
 
 export interface EmailConfig {
-  provider: 'smtp' | 'sendgrid' | 'ses';
+  provider: 'smtp' | 'sendgrid' | 'ses' | 'mailgun';
   from: string;
   apiKey?: string;
+  domain?: string;
   host?: string;
   port?: number;
   secure?: boolean;

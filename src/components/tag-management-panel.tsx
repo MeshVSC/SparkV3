@@ -15,11 +15,11 @@ import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  MoreVertical, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  MoreVertical,
   Tag as TagIcon,
   Palette,
   BarChart3,
@@ -45,7 +45,7 @@ function TagTreeItem({ tag, level, onEdit, onDelete, onToggleExpanded, expandedT
 
   return (
     <div className="select-none">
-      <div 
+      <div
         className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors group"
         style={{ marginLeft: `${level * 20}px` }}
       >
@@ -65,12 +65,12 @@ function TagTreeItem({ tag, level, onEdit, onDelete, onToggleExpanded, expandedT
         ) : (
           <div className="w-4" />
         )}
-        
-        <div 
+
+        <div
           className="w-4 h-4 rounded border"
           style={{ backgroundColor: tag.color }}
         />
-        
+
         {hasChildren ? (
           isExpanded ? (
             <FolderOpen className="w-4 h-4 text-muted-foreground" />
@@ -80,7 +80,7 @@ function TagTreeItem({ tag, level, onEdit, onDelete, onToggleExpanded, expandedT
         ) : (
           <Hash className="w-4 h-4 text-muted-foreground" />
         )}
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium truncate">{tag.name}</span>
@@ -106,7 +106,7 @@ function TagTreeItem({ tag, level, onEdit, onDelete, onToggleExpanded, expandedT
               <Edit className="w-4 h-4 mr-2" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => onDelete(tag)}
               className="text-destructive"
             >
@@ -136,12 +136,12 @@ function TagTreeItem({ tag, level, onEdit, onDelete, onToggleExpanded, expandedT
   )
 }
 
-function TagForm({ 
-  tag, 
-  tags, 
-  onSubmit, 
-  onCancel 
-}: { 
+function TagForm({
+  tag,
+  tags,
+  onSubmit,
+  onCancel
+}: {
   tag?: Tag
   tags: Tag[]
   onSubmit: (data: CreateTagData | UpdateTagData) => void
@@ -158,7 +158,7 @@ function TagForm({
 
   function isDescendant(ancestorId: string, tag: Tag): boolean {
     if (!tag.children) return false
-    
+
     for (const child of tag.children) {
       if (child.id === ancestorId || isDescendant(ancestorId, child)) {
         return true
@@ -278,8 +278,8 @@ export function TagManagementPanel() {
     })
   }
 
-  const handleCreateTag = async (data: CreateTagData) => {
-    const success = await createTag(data)
+  const handleCreateTag = async (data: CreateTagData | UpdateTagData) => {
+    const success = await createTag(data as CreateTagData)
     if (success) {
       setIsCreateDialogOpen(false)
     }
@@ -312,7 +312,7 @@ export function TagManagementPanel() {
           <h1 className="text-2xl font-bold">Tag Management</h1>
           <p className="text-muted-foreground">Organize your tags with hierarchical relationships</p>
         </div>
-        
+
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -396,7 +396,7 @@ export function TagManagementPanel() {
                 <div className="grid gap-3">
                   {tags.map((tag) => (
                     <div key={tag.id} className="flex items-center gap-3 p-3 rounded-lg border">
-                      <div 
+                      <div
                         className="w-4 h-4 rounded border flex-shrink-0"
                         style={{ backgroundColor: tag.color }}
                       />
@@ -418,7 +418,7 @@ export function TagManagementPanel() {
                           <p className="text-sm text-muted-foreground truncate">{tag.description}</p>
                         )}
                       </div>
-                      
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -430,7 +430,7 @@ export function TagManagementPanel() {
                             <Edit className="w-4 h-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => setDeletingTag(tag)}
                             className="text-destructive"
                           >
@@ -485,7 +485,7 @@ export function TagManagementPanel() {
                   <div className="space-y-3">
                     {stats.colorStats.map((stat, index) => (
                       <div key={stat.color} className="flex items-center gap-3">
-                        <div 
+                        <div
                           className="w-4 h-4 rounded border flex-shrink-0"
                           style={{ backgroundColor: stat.color }}
                         />
@@ -494,8 +494,8 @@ export function TagManagementPanel() {
                             <span>{stat.color}</span>
                             <span>{stat.count} tags</span>
                           </div>
-                          <Progress 
-                            value={(stat.count / stats.totalTags) * 100} 
+                          <Progress
+                            value={(stat.count / stats.totalTags) * 100}
                             className="h-1"
                           />
                         </div>
@@ -532,7 +532,7 @@ export function TagManagementPanel() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Tag</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingTag?.name}"? 
+              Are you sure you want to delete "{deletingTag?.name}"?
               {deletingTag?._count?.children && deletingTag._count.children > 0 && (
                 <> This tag has {deletingTag._count.children} child tags that will become root tags.</>
               )}

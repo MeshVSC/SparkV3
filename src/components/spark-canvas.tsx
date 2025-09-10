@@ -66,7 +66,10 @@ function DraggableSparkCard({ spark, isSelected, onClick }: { spark: Spark; isSe
 export function SparkCanvas() {
   const { state, actions } = useSpark()
   const { filteredSparks } = useSearch()
-  const { updateCursor, startEditingSpark, endEditingSpark, broadcastSparkChange } = usePresence()
+  const updateCursor = (_x: number, _y: number) => {}
+  const startEditingSpark = (_id: string) => {}
+  const endEditingSpark = (_id: string) => {}
+  const broadcastSparkChange = (_: { sparkId: string; content: string; changeType: string; position?: { x: number; y: number } }) => {}
   const [activeSpark, setActiveSpark] = useState<Spark | null>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
   const [canvasTransform, setCanvasTransform] = useState({ x: 0, y: 0, scale: 1 })
@@ -84,7 +87,7 @@ export function SparkCanvas() {
   })
   const [hoveredConnection, setHoveredConnection] = useState<string | null>(null)
   const [selectedConnection, setSelectedConnection] = useState<ConnectionLine | null>(null)
-  
+
   // Drag-to-connect states
   const [isDraggingConnection, setIsDraggingConnection] = useState(false)
   const [dragStartSpark, setDragStartSpark] = useState<Spark | null>(null)
@@ -92,7 +95,7 @@ export function SparkCanvas() {
   const [dragCurrentPosition, setDragCurrentPosition] = useState<{ x: number; y: number } | null>(null)
   const [dragConnectionType, setDragConnectionType] = useState<ConnectionType>(ConnectionType.RELATED_TO)
   const [dragTargetSpark, setDragTargetSpark] = useState<Spark | null>(null)
-  
+
   // Panel states
   const [showRecommendations, setShowRecommendations] = useState(false)
   const [showBatchTools, setShowBatchTools] = useState(false)
@@ -160,7 +163,7 @@ export function SparkCanvas() {
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault()
     const currentTime = Date.now()
-    
+
     // Clear any existing long press timer
     if (touchGesture.longPressTimer) {
       clearTimeout(touchGesture.longPressTimer)
@@ -168,12 +171,12 @@ export function SparkCanvas() {
 
     // Set up long press detection for single touch
     let longPressTimer: NodeJS.Timeout | null = null
-    if (e.touches.length === 1) {
+    if (e.nativeEvent.touches.length === 1) {
       longPressTimer = setTimeout(() => {
         setTouchGesture(prev => ({ ...prev, gestureType: 'longpress' }))
-        
+
         // Get touched spark for context menu
-        const touch = e.touches[0]
+        const touch = e.nativeEvent.touches[0]
         const canvasCoords = getCanvasCoordinates(touch.clientX, touch.clientY)
         const touchedSpark = state.sparks.find(spark => {
           const sparkX = spark.positionX || 0
@@ -181,7 +184,7 @@ export function SparkCanvas() {
           return canvasCoords.x >= sparkX && canvasCoords.x <= sparkX + 256 &&
                  canvasCoords.y >= sparkY && canvasCoords.y <= sparkY + 200
         })
-        
+
         if (touchedSpark) {
           actions.selectSpark(touchedSpark)
           // Could trigger context menu here
@@ -191,11 +194,11 @@ export function SparkCanvas() {
 
     setTouchGesture({
       isActive: true,
-      initialTouches: e.touches,
-      lastTouches: e.touches,
-      gestureType: e.touches.length === 2 ? 'pinch' : 'pan',
+      initialTouches: e.nativeEvent.touches,
+      lastTouches: e.nativeEvent.touches,
+      gestureType: e.nativeEvent.touches.length === 2 ? 'pinch' : 'pan',
       startTime: currentTime,
-      initialDistance: getTouchDistance(e.touches),
+      initialDistance: getTouchDistance(e.nativeEvent.touches),
       currentScale: canvasTransform.scale,
       panVelocity: { x: 0, y: 0 },
       longPressTimer,
@@ -205,10 +208,10 @@ export function SparkCanvas() {
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     e.preventDefault()
-    
+
     if (!touchGesture.isActive || !touchGesture.initialTouches) return
 
-    const currentTouches = e.touches
+    const currentTouches = e.nativeEvent.touches
     const timeDelta = Date.now() - touchGesture.startTime
 
     // Clear long press timer on movement
@@ -222,10 +225,10 @@ export function SparkCanvas() {
       const currentDistance = getTouchDistance(currentTouches)
       const scale = (currentDistance / touchGesture.initialDistance) * touchGesture.currentScale
       const clampedScale = Math.max(0.5, Math.min(3, scale))
-      
+
       const center = getTouchCenter(currentTouches)
       const initialCenter = getTouchCenter(touchGesture.initialTouches)
-      
+
       setCanvasTransform(prev => ({
         ...prev,
         scale: clampedScale,
@@ -236,10 +239,10 @@ export function SparkCanvas() {
       // Pan gesture
       const currentTouch = currentTouches[0]
       const initialTouch = touchGesture.initialTouches[0]
-      
+
       const deltaX = currentTouch.clientX - initialTouch.clientX
       const deltaY = currentTouch.clientY - initialTouch.clientY
-      
+
       // Calculate velocity
       const velocity = {
         x: timeDelta > 0 ? deltaX / timeDelta : 0,
@@ -266,7 +269,7 @@ export function SparkCanvas() {
     if (e.shiftKey) {
       e.preventDefault()
       e.stopPropagation()
-      
+
       setIsDraggingConnection(true)
       setDragStartSpark(spark)
       setDragStartPosition({ x: e.clientX, y: e.clientY })
@@ -277,7 +280,7 @@ export function SparkCanvas() {
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isDraggingConnection) {
       setDragCurrentPosition({ x: e.clientX, y: e.clientY })
-      
+
       // Find spark under cursor for highlighting
       const element = document.elementFromPoint(e.clientX, e.clientY)
       const sparkCard = element?.closest('[data-spark-id]')
@@ -307,7 +310,7 @@ export function SparkCanvas() {
         console.error('Failed to create connection:', error)
       }
     }
-    
+
     // Reset drag state
     setIsDraggingConnection(false)
     setDragStartSpark(null)
@@ -333,7 +336,7 @@ export function SparkCanvas() {
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     e.preventDefault()
-    
+
     if (!touchGesture.isActive || !touchGesture.initialTouches) return
 
     // Clear long press timer
@@ -344,19 +347,19 @@ export function SparkCanvas() {
     const endTime = Date.now()
     const timeDelta = endTime - touchGesture.startTime
 
-    if (touchGesture.gestureType === 'pan' && e.changedTouches.length === 1) {
-      const initialTouch = touchGesture.initialTouches[0]
-      const endTouch = e.changedTouches[0]
-      
+    if (touchGesture.gestureType === 'pan' && e.nativeEvent.changedTouches.length === 1) {
+      const initialTouch = touchGesture.initialTouches[0] as Touch
+      const endTouch = e.nativeEvent.changedTouches[0] as Touch
+
       const deltaX = endTouch.clientX - initialTouch.clientX
       const deltaY = endTouch.clientY - initialTouch.clientY
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-      
+
       // Detect swipe gesture
       if (distance > touchGesture.swipeThreshold && timeDelta < 300) {
         const velocity = getSwipeVelocity(initialTouch, endTouch, timeDelta)
         const direction = getSwipeDirection(initialTouch, endTouch)
-        
+
         // Handle swipe actions
         if (velocity > 0.5) { // Minimum velocity threshold
           const canvasCoords = getCanvasCoordinates(endTouch.clientX, endTouch.clientY)
@@ -366,7 +369,7 @@ export function SparkCanvas() {
             return canvasCoords.x >= sparkX && canvasCoords.x <= sparkX + 256 &&
                    canvasCoords.y >= sparkY && canvasCoords.y <= sparkY + 200
           })
-          
+
           if (swipedSpark) {
             switch (direction) {
               case 'left':
@@ -394,7 +397,7 @@ export function SparkCanvas() {
           x: touchGesture.panVelocity.x * 100,
           y: touchGesture.panVelocity.y * 100
         }
-        
+
         // Apply boundary constraints
         setCanvasTransform(prev => {
           const maxX = 500, maxY = 500 // Adjust based on content bounds
@@ -448,7 +451,7 @@ export function SparkCanvas() {
               // Calculate connection strength based on XP levels and recency
               const totalXp = spark.xp + connectedSpark.xp
               const avgLevel = (spark.level + connectedSpark.level) / 2
-              const daysSinceCreation = Math.max(1, 
+              const daysSinceCreation = Math.max(1,
                 (new Date().getTime() - new Date(connection.createdAt).getTime()) / (1000 * 60 * 60 * 24)
               )
               const strength = Math.min(1, (totalXp / 1000 + avgLevel / 10) / Math.sqrt(daysSinceCreation))
@@ -490,7 +493,7 @@ export function SparkCanvas() {
               // Calculate connection strength based on XP levels and recency
               const totalXp = spark.xp + connectedSpark.xp
               const avgLevel = (spark.level + connectedSpark.level) / 2
-              const daysSinceCreation = Math.max(1, 
+              const daysSinceCreation = Math.max(1,
                 (new Date().getTime() - new Date(connection.createdAt).getTime()) / (1000 * 60 * 60 * 24)
               )
               const strength = Math.min(1, (totalXp / 1000 + avgLevel / 10) / Math.sqrt(daysSinceCreation))
@@ -554,7 +557,7 @@ export function SparkCanvas() {
   }, [actions])
 
   // Handle mouse movement for cursor tracking
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
     if (canvasRef.current) {
       const rect = canvasRef.current.getBoundingClientRect()
       const x = e.clientX - rect.left
@@ -655,11 +658,10 @@ export function SparkCanvas() {
         ref={canvasRef}
         className="relative w-full h-full bg-gradient-to-br from-background to-muted/20 overflow-hidden touch-none"
         onClick={handleCanvasClick}
-        onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        onMouseMove={handleMouseMove}
+        onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleMouseUp}
         data-project-canvas
         id="spark-canvas"
@@ -704,25 +706,25 @@ export function SparkCanvas() {
             const isHovered = hoveredConnection === line.id
             const strokeWidth = Math.max(2, line.strength * 8)
             const opacity = isHovered ? 0.9 : Math.max(0.3, line.strength * 0.7)
-            
+
             // Calculate curve control points for smoother connections
             const dx = line.toX - line.fromX
             const dy = line.toY - line.fromY
             const distance = Math.sqrt(dx * dx + dy * dy)
             const curvature = Math.min(50, distance * 0.2)
-            
+
             const midX = (line.fromX + line.toX) / 2
             const midY = (line.fromY + line.toY) / 2
-            
+
             // Perpendicular offset for curve
             const perpX = -dy / distance * curvature
             const perpY = dx / distance * curvature
-            
+
             const controlX = midX + perpX
             const controlY = midY + perpY
-            
+
             const pathD = `M ${line.fromX} ${line.fromY} Q ${controlX} ${controlY} ${line.toX} ${line.toY}`
-            
+
             return (
               <g key={line.id}>
                 {/* Invisible thick line for easier hover detection */}
@@ -837,13 +839,13 @@ export function SparkCanvas() {
                   ✕
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium mb-2">Connected Sparks</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: state.sparks.find(s => s.id === selectedConnection.fromSparkId)?.color }}
                       />
@@ -854,7 +856,7 @@ export function SparkCanvas() {
                       <span>Connected to</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: state.sparks.find(s => s.id === selectedConnection.toSparkId)?.color }}
                       />
@@ -862,12 +864,12 @@ export function SparkCanvas() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium mb-2">Connection Strength</h4>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 bg-muted rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-primary rounded-full h-2 transition-all duration-300"
                         style={{ width: `${selectedConnection.strength * 100}%` }}
                       />
@@ -878,7 +880,7 @@ export function SparkCanvas() {
                     Based on combined XP, levels, and connection age
                   </p>
                 </div>
-                
+
                 <div>
                   <h4 className="font-medium mb-2">Created</h4>
                   <p className="text-sm text-muted-foreground">
@@ -891,7 +893,7 @@ export function SparkCanvas() {
                     })}
                   </p>
                 </div>
-                
+
                 <div className="pt-4 border-t">
                   <button
                     onClick={() => {
@@ -922,8 +924,7 @@ export function SparkCanvas() {
         </DragOverlay>
 
         {/* User cursors overlay */}
-        <UserCursors containerRef={canvasRef} />
-        
+
         {/* Instructions for new users */}
         <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm border rounded-lg px-3 py-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">

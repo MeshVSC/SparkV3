@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
-import { NotificationData, NotificationDelivery, NotificationChannel } from '@/types/notification';
-import { EmailTemplate, EmailConfig, EmailQueue, DeliveryStatus } from '@/types/email';
+import { NotificationData, NotificationDelivery, NotificationChannel, DeliveryStatus } from '@/types/notification';
+import { EmailTemplate, EmailConfig, EmailQueue } from '@/types/email';
 import { v4 as uuidv4 } from 'uuid';
 
 export class EmailService extends EventEmitter {
@@ -37,7 +37,7 @@ export class EmailService extends EventEmitter {
   // Configuration
   async configure(config: EmailConfig): Promise<void> {
     this.config = config;
-    
+
     if (config.provider === 'smtp') {
       this.transporter = nodemailer.createTransport({
         host: config.host,
@@ -206,7 +206,7 @@ export class EmailService extends EventEmitter {
       id: uuidv4(),
       notificationId: email.id,
       channel: NotificationChannel.EMAIL,
-      status: 'PROCESSING' as DeliveryStatus,
+      status: DeliveryStatus.PROCESSING,
       attempts: email.attempts + 1,
       lastAttemptAt: new Date(),
       createdAt: new Date(),
@@ -219,22 +219,22 @@ export class EmailService extends EventEmitter {
       }
 
       const result = await this.transporter.sendMail(mailOptions);
-      
-      delivery.status = 'DELIVERED' as DeliveryStatus;
+
+      delivery.status = DeliveryStatus.DELIVERED;
       delivery.deliveredAt = new Date();
       (delivery as any).providerMessageId = result.messageId;
-      
+
       this.stats.sent++;
       this.stats.processing--;
-      
+
       this.emit('email_sent', { email, delivery, result });
     } catch (error) {
-      delivery.status = 'FAILED' as DeliveryStatus;
+      delivery.status = DeliveryStatus.FAILED;
       delivery.errorMessage = (error as Error).message;
-      
+
       this.stats.failed++;
       this.stats.processing--;
-      
+
       throw error;
     } finally {
       delivery.updatedAt = new Date();
@@ -255,7 +255,7 @@ export class EmailService extends EventEmitter {
     // Schedule retry with exponential backoff
     const delay = this.retryDelays[Math.min(email.attempts - 1, this.retryDelays.length - 1)];
     email.scheduledAt = new Date(Date.now() + delay);
-    
+
     this.emit('email_retry_scheduled', { email, delay, error });
   }
 
@@ -324,59 +324,59 @@ export class EmailService extends EventEmitter {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>{{title}}</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              line-height: 1.6; 
-              color: #1f2937; 
-              margin: 0; 
-              padding: 0; 
-              background-color: #f9fafb; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #1f2937;
+              margin: 0;
+              padding: 0;
+              background-color: #f9fafb;
             }
-            .container { 
-              max-width: 600px; 
-              margin: 0 auto; 
-              background-color: white; 
-              border-radius: 8px; 
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: white;
+              border-radius: 8px;
               overflow: hidden;
               box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
-            .header { 
-              background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
-              color: white; 
-              padding: 32px 24px; 
-              text-align: center; 
+            .header {
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              color: white;
+              padding: 32px 24px;
+              text-align: center;
             }
-            .header h1 { 
-              margin: 0; 
-              font-size: 24px; 
-              font-weight: 600; 
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: 600;
             }
-            .content { 
-              padding: 32px 24px; 
+            .content {
+              padding: 32px 24px;
             }
-            .message { 
-              font-size: 16px; 
-              margin-bottom: 24px; 
-              line-height: 1.5; 
+            .message {
+              font-size: 16px;
+              margin-bottom: 24px;
+              line-height: 1.5;
             }
-            .button { 
-              display: inline-block; 
-              padding: 12px 24px; 
-              background-color: #10b981; 
-              color: white; 
-              text-decoration: none; 
-              border-radius: 6px; 
+            .button {
+              display: inline-block;
+              padding: 12px 24px;
+              background-color: #10b981;
+              color: white;
+              text-decoration: none;
+              border-radius: 6px;
               font-weight: 500;
               transition: background-color 0.2s;
             }
             .button:hover {
               background-color: #059669;
             }
-            .footer { 
-              padding: 24px; 
-              text-align: center; 
-              font-size: 14px; 
-              color: #6b7280; 
+            .footer {
+              padding: 24px;
+              text-align: center;
+              font-size: 14px;
+              color: #6b7280;
               border-top: 1px solid #e5e7eb;
             }
             .spark-info {
@@ -413,16 +413,16 @@ export class EmailService extends EventEmitter {
       `,
       text: `
         {{title}}
-        
+
         {{message}}
-        
+
         {{#sparkId}}
         Spark: {{sparkTitle}}
         Updated: {{timestamp}}
         {{/sparkId}}
-        
+
         View Spark: {{appUrl}}/sparks/{{sparkId}}
-        
+
         ---
         You're receiving this because you have notifications enabled.
         Manage preferences: {{appUrl}}/settings/notifications
@@ -440,40 +440,40 @@ export class EmailService extends EventEmitter {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Collaboration Invite</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              line-height: 1.6; 
-              color: #1f2937; 
-              margin: 0; 
-              padding: 0; 
-              background-color: #f9fafb; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #1f2937;
+              margin: 0;
+              padding: 0;
+              background-color: #f9fafb;
             }
-            .container { 
-              max-width: 600px; 
-              margin: 0 auto; 
-              background-color: white; 
-              border-radius: 8px; 
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: white;
+              border-radius: 8px;
               overflow: hidden;
               box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
-            .header { 
-              background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
-              color: white; 
-              padding: 32px 24px; 
-              text-align: center; 
+            .header {
+              background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+              color: white;
+              padding: 32px 24px;
+              text-align: center;
             }
-            .header h1 { 
-              margin: 0; 
-              font-size: 24px; 
-              font-weight: 600; 
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: 600;
             }
-            .content { 
-              padding: 32px 24px; 
+            .content {
+              padding: 32px 24px;
             }
-            .message { 
-              font-size: 16px; 
-              margin-bottom: 24px; 
-              line-height: 1.5; 
+            .message {
+              font-size: 16px;
+              margin-bottom: 24px;
+              line-height: 1.5;
             }
             .invite-info {
               background-color: #f0f9ff;
@@ -486,13 +486,13 @@ export class EmailService extends EventEmitter {
               text-align: center;
               margin: 24px 0;
             }
-            .button { 
-              display: inline-block; 
-              padding: 12px 24px; 
+            .button {
+              display: inline-block;
+              padding: 12px 24px;
               margin: 0 8px;
-              color: white; 
-              text-decoration: none; 
-              border-radius: 6px; 
+              color: white;
+              text-decoration: none;
+              border-radius: 6px;
               font-weight: 500;
               transition: all 0.2s;
             }
@@ -508,11 +508,11 @@ export class EmailService extends EventEmitter {
             .button-decline:hover {
               background-color: #4b5563;
             }
-            .footer { 
-              padding: 24px; 
-              text-align: center; 
-              font-size: 14px; 
-              color: #6b7280; 
+            .footer {
+              padding: 24px;
+              text-align: center;
+              font-size: 14px;
+              color: #6b7280;
               border-top: 1px solid #e5e7eb;
             }
           </style>
@@ -544,16 +544,16 @@ export class EmailService extends EventEmitter {
       `,
       text: `
         Collaboration Invite
-        
+
         {{message}}
-        
+
         Inviter: {{inviterName}}
         Spark: {{sparkTitle}}
         Invited: {{timestamp}}
-        
+
         Accept: {{appUrl}}/collaborate/{{sparkId}}/accept
         Decline: {{appUrl}}/collaborate/{{sparkId}}/decline
-        
+
         ---
         Manage preferences: {{appUrl}}/settings/notifications
       `
@@ -570,40 +570,40 @@ export class EmailService extends EventEmitter {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>You were mentioned</title>
           <style>
-            body { 
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-              line-height: 1.6; 
-              color: #1f2937; 
-              margin: 0; 
-              padding: 0; 
-              background-color: #f9fafb; 
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #1f2937;
+              margin: 0;
+              padding: 0;
+              background-color: #f9fafb;
             }
-            .container { 
-              max-width: 600px; 
-              margin: 0 auto; 
-              background-color: white; 
-              border-radius: 8px; 
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: white;
+              border-radius: 8px;
               overflow: hidden;
               box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             }
-            .header { 
-              background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
-              color: white; 
-              padding: 32px 24px; 
-              text-align: center; 
+            .header {
+              background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+              color: white;
+              padding: 32px 24px;
+              text-align: center;
             }
-            .header h1 { 
-              margin: 0; 
-              font-size: 24px; 
-              font-weight: 600; 
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: 600;
             }
-            .content { 
-              padding: 32px 24px; 
+            .content {
+              padding: 32px 24px;
             }
-            .message { 
-              font-size: 16px; 
-              margin-bottom: 24px; 
-              line-height: 1.5; 
+            .message {
+              font-size: 16px;
+              margin-bottom: 24px;
+              line-height: 1.5;
             }
             .mention-context {
               background-color: #fffbeb;
@@ -613,24 +613,24 @@ export class EmailService extends EventEmitter {
               border-left: 4px solid #f59e0b;
               font-style: italic;
             }
-            .button { 
-              display: inline-block; 
-              padding: 12px 24px; 
-              background-color: #f59e0b; 
-              color: white; 
-              text-decoration: none; 
-              border-radius: 6px; 
+            .button {
+              display: inline-block;
+              padding: 12px 24px;
+              background-color: #f59e0b;
+              color: white;
+              text-decoration: none;
+              border-radius: 6px;
               font-weight: 500;
               transition: background-color 0.2s;
             }
             .button:hover {
               background-color: #d97706;
             }
-            .footer { 
-              padding: 24px; 
-              text-align: center; 
-              font-size: 14px; 
-              color: #6b7280; 
+            .footer {
+              padding: 24px;
+              text-align: center;
+              font-size: 14px;
+              color: #6b7280;
               border-top: 1px solid #e5e7eb;
             }
           </style>
@@ -659,15 +659,15 @@ export class EmailService extends EventEmitter {
       `,
       text: `
         You were mentioned
-        
+
         {{message}}
-        
+
         {{#context}}
         Context: "{{context}}"
         {{/context}}
-        
+
         View Discussion: {{appUrl}}/sparks/{{sparkId}}
-        
+
         ---
         Manage preferences: {{appUrl}}/settings/notifications
       `
@@ -705,21 +705,21 @@ export class EmailService extends EventEmitter {
       }
 
       await this.transporter.verify();
-      return { 
-        healthy: true, 
-        details: { 
+      return {
+        healthy: true,
+        details: {
           configured: true,
           queueLength: this.queue.length,
           stats: this.getStats()
-        } 
+        }
       };
     } catch (error) {
-      return { 
-        healthy: false, 
-        details: { 
+      return {
+        healthy: false,
+        details: {
           error: (error as Error).message,
           queueLength: this.queue.length
-        } 
+        }
       };
     }
   }

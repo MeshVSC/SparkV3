@@ -62,7 +62,7 @@ export class SearchService {
     }));
 
     this.sparks = indexedSparks;
-    
+
     // Create new Fuse instance with updated data
     this.fuse = new Fuse(indexedSparks, {
       threshold: this.searchOptions.threshold,
@@ -88,9 +88,9 @@ export class SearchService {
     }
 
     const searchOptions = { ...this.searchOptions, ...options };
-    
+
     return this.fuse.search(query, {
-      limit: searchOptions.findAllMatches ? undefined : 50
+      limit: searchOptions.findAllMatches ? Number.MAX_SAFE_INTEGER : 50
     }) as SearchResult[];
   }
 
@@ -107,12 +107,12 @@ export class SearchService {
 
     results.slice(0, limit * 2).forEach(result => {
       const spark = result.item;
-      
+
       // Extract suggestions from titles
       if (spark.title.toLowerCase().includes(query.toLowerCase())) {
         suggestions.add(spark.title);
       }
-      
+
       // Extract suggestions from tags
       this.parseTags(spark.tags).forEach(tag => {
         if (tag.toLowerCase().includes(query.toLowerCase())) {
@@ -157,8 +157,8 @@ export class SearchService {
       // Tag filtering
       if (filters.tags && filters.tags.length > 0) {
         const sparkTags = this.parseTags(spark.tags);
-        const hasMatchingTag = filters.tags.some(filterTag => 
-          sparkTags.some(sparkTag => 
+        const hasMatchingTag = filters.tags.some(filterTag =>
+          sparkTags.some(sparkTag =>
             sparkTag.toLowerCase().includes(filterTag.toLowerCase())
           )
         );
@@ -193,7 +193,7 @@ export class SearchService {
    */
   public updateOptions(options: Partial<SearchOptions>): void {
     this.searchOptions = { ...this.searchOptions, ...options };
-    
+
     // Re-index with new options if we have data
     if (this.sparks.length > 0) {
       this.indexSparks(this.sparks);
@@ -220,7 +220,7 @@ export class SearchService {
    */
   private parseTags(tags?: string): string[] {
     if (!tags) return [];
-    
+
     try {
       // Try parsing as JSON first
       const parsed = JSON.parse(tags);

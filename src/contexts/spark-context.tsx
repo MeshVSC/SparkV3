@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useReducer, useEffect } from "react"
-import { Spark, Todo, Attachment, CreateSparkData, SparkConnection, ConnectionType } from "@/types/spark"
+import { Spark, Todo, Attachment, CreateSparkData, SparkConnection, ConnectionType, AttachmentType } from "@/types/spark"
 import { AchievementService } from "@/lib/achievement-service"
 import { sparkApi } from "@/lib/api/spark-api"
 import { useGuest } from "@/contexts/guest-context"
@@ -47,46 +47,46 @@ function sparkReducer(state: SparkState, action: SparkAction): SparkState {
   switch (action.type) {
     case "SET_SPARKS":
       return { ...state, sparks: action.payload }
-    
+
     case "ADD_SPARK":
       return { ...state, sparks: [...state.sparks, action.payload] }
-    
+
     case "UPDATE_SPARK":
       return {
         ...state,
         sparks: state.sparks.map(spark =>
           spark.id === action.payload.id ? action.payload : spark
         ),
-        selectedSpark: state.selectedSpark?.id === action.payload.id 
-          ? action.payload 
+        selectedSpark: state.selectedSpark?.id === action.payload.id
+          ? action.payload
           : state.selectedSpark,
       }
-    
+
     case "DELETE_SPARK":
       return {
         ...state,
         sparks: state.sparks.filter(spark => spark.id !== action.payload),
         selectedSpark: state.selectedSpark?.id === action.payload ? null : state.selectedSpark,
       }
-    
+
     case "SET_SELECTED_SPARK":
       return { ...state, selectedSpark: action.payload }
-    
+
     case "SET_LOADING":
       return { ...state, isLoading: action.payload }
-    
+
     case "SET_ERROR":
       return { ...state, error: action.payload }
-    
+
     case "SET_VIEW_MODE":
       return { ...state, viewMode: action.payload }
-    
+
     case "SET_SEARCH_QUERY":
       return { ...state, searchQuery: action.payload }
-    
+
     case "SET_USER_STATS":
       return { ...state, userStats: action.payload }
-    
+
     case "ADD_TODO":
       return {
         ...state,
@@ -96,7 +96,7 @@ function sparkReducer(state: SparkState, action: SparkAction): SparkState {
             : spark
         ),
       }
-    
+
     case "UPDATE_TODO":
       return {
         ...state,
@@ -111,7 +111,7 @@ function sparkReducer(state: SparkState, action: SparkAction): SparkState {
             : spark
         ),
       }
-    
+
     case "DELETE_TODO":
       return {
         ...state,
@@ -124,20 +124,20 @@ function sparkReducer(state: SparkState, action: SparkAction): SparkState {
             : spark
         ),
       }
-    
+
     case "ADD_ATTACHMENT":
       return {
         ...state,
         sparks: state.sparks.map(spark =>
           spark.id === action.payload.sparkId
-            ? { 
-                ...spark, 
-                attachments: [...(spark.attachments || []), action.payload.attachment] 
+            ? {
+                ...spark,
+                attachments: [...(spark.attachments || []), action.payload.attachment]
               }
             : spark
         ),
       }
-    
+
     case "DELETE_ATTACHMENT":
       return {
         ...state,
@@ -150,7 +150,7 @@ function sparkReducer(state: SparkState, action: SparkAction): SparkState {
             : spark
         ),
       }
-    
+
     default:
       return state
   }
@@ -225,15 +225,15 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
             ...sparkData,
             id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             userId: "guest",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
             todos: [],
             attachments: [],
           }
-          
+
           const currentGuestData = loadGuestData() || { sparks: [], todos: [], preferences: {} }
           const updatedSparks = [...(currentGuestData.sparks || []), newSpark]
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "ADD_SPARK", payload: newSpark })
         } else {
@@ -254,9 +254,9 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
           // Update spark in guest storage
           const currentGuestData = loadGuestData()
           const updatedSparks = currentGuestData?.sparks?.map(spark =>
-            spark.id === id ? { ...spark, ...updates, updatedAt: new Date().toISOString() } : spark
+            spark.id === id ? { ...spark, ...updates, updatedAt: new Date() } : spark
           ) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           const updatedSpark = updatedSparks.find(spark => spark.id === id)
           if (updatedSpark) {
@@ -278,7 +278,7 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
           // Delete spark from guest storage
           const currentGuestData = loadGuestData()
           const updatedSparks = currentGuestData?.sparks?.filter(spark => spark.id !== id) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "DELETE_SPARK", payload: id })
         } else {
@@ -318,16 +318,16 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
           const newTodo: Todo = {
             ...todoData,
             id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            createdAt: new Date().toISOString(),
+            createdAt: new Date(),
           }
-          
+
           const currentGuestData = loadGuestData()
           const updatedSparks = currentGuestData?.sparks?.map(spark =>
             spark.id === sparkId
               ? { ...spark, todos: [...(spark.todos || []), newTodo] }
               : spark
           ) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "ADD_TODO", payload: { sparkId, todo: newTodo } })
         } else {
@@ -355,12 +355,12 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
                 }
               : spark
           ) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           const updatedTodo = updatedSparks
             .find(spark => spark.id === sparkId)
             ?.todos?.find(todo => todo.id === todoId)
-          
+
           if (updatedTodo) {
             dispatch({ type: "UPDATE_TODO", payload: { sparkId, todo: updatedTodo } })
           }
@@ -387,7 +387,7 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
                 }
               : spark
           ) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "DELETE_TODO", payload: { sparkId, todoId } })
         } else {
@@ -409,21 +409,21 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
             sparkId,
             filename: file.name,
             url: URL.createObjectURL(file), // Create a local URL for the file
-            type: "FILE",
+            type: AttachmentType.FILE,
             size: file.size,
-            createdAt: new Date().toISOString(),
+            createdAt: new Date(),
           }
-          
+
           const currentGuestData = loadGuestData()
           const updatedSparks = currentGuestData?.sparks?.map(spark =>
             spark.id === sparkId
-              ? { 
-                  ...spark, 
-                  attachments: [...(spark.attachments || []), newAttachment] 
+              ? {
+                  ...spark,
+                  attachments: [...(spark.attachments || []), newAttachment]
                 }
               : spark
           ) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "ADD_ATTACHMENT", payload: { sparkId, attachment: newAttachment } })
         } else {
@@ -462,7 +462,7 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
                 }
               : spark
           ) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "DELETE_ATTACHMENT", payload: { sparkId, attachmentId } })
         } else {
@@ -487,20 +487,20 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
             sparkId2,
             type,
             metadata,
-            createdAt: new Date().toISOString(),
+            createdAt: new Date(),
           }
-          
+
           const currentGuestData = loadGuestData()
           const updatedSparks = currentGuestData?.sparks?.map(spark => {
             if (spark.id === sparkId1) {
-              return { 
-                ...spark, 
-                connections: [...(spark.connections || []), newConnection] 
+              return {
+                ...spark,
+                connections: [...(spark.connections || []), newConnection]
               }
             }
             return spark
           }) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "SET_SPARKS", payload: updatedSparks })
         } else {
@@ -524,7 +524,7 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
               conn.id === connectionId ? { ...conn, ...updates } : conn
             ) || []
           })) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "SET_SPARKS", payload: updatedSparks })
         } else {
@@ -546,7 +546,7 @@ export function SparkProvider({ children }: { children: React.ReactNode }) {
             ...spark,
             connections: spark.connections?.filter(conn => conn.id !== connectionId) || []
           })) || []
-          
+
           saveGuestData({ sparks: updatedSparks })
           dispatch({ type: "SET_SPARKS", payload: updatedSparks })
         } else {

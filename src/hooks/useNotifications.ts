@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { socketClient } from '@/lib/socket-client';
 import { InAppChannelHandler } from '@/lib/notification/channels/InAppChannelHandler';
+
+// Fallback socket client if real client is not available
+const socketClient = (typeof window !== 'undefined' && (window as any).__socketClient) ? (window as any).__socketClient : {
+  on: (_event: string, _handler?: any) => {},
+  off: (_event: string, _handler?: any) => {},
+  isConnected: () => false,
+}
 
 export interface InAppNotification {
   id: string;
@@ -59,7 +65,7 @@ export function useNotifications(userId?: string): NotificationHookReturn {
       };
 
       setNotifications(prev => [notification, ...prev.slice(0, 99)]); // Keep last 100
-      
+
       // Store in localStorage
       if (userId && typeof window !== 'undefined') {
         const updated = [notification, ...InAppChannelHandler.getStoredNotifications(userId).slice(0, 99)];
@@ -94,9 +100,9 @@ export function useNotifications(userId?: string): NotificationHookReturn {
   const markAsRead = useCallback((notificationId: string) => {
     if (!userId) return;
 
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === notificationId 
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === notificationId
           ? { ...notification, read: true }
           : notification
       )
@@ -108,7 +114,7 @@ export function useNotifications(userId?: string): NotificationHookReturn {
   const markAllAsRead = useCallback(() => {
     if (!userId) return;
 
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(notification => ({ ...notification, read: true }))
     );
 

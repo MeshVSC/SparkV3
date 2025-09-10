@@ -81,12 +81,12 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
   // Prevent zoom on double tap for iOS
   useEffect(() => {
     if (!open) return
-    
+
     const viewport = document.querySelector('meta[name=viewport]')
     if (viewport) {
       const originalContent = viewport.getAttribute('content')
       viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
-      
+
       return () => {
         if (originalContent) {
           viewport.setAttribute('content', originalContent)
@@ -97,7 +97,7 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.title.trim()) return
 
     const updates = {
@@ -161,20 +161,16 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
     }
   }
 
-  const getConnectedSparks = () => {
+  const getConnectedSparks = (): Spark[] => {
     if (!spark.connections) return []
-    
     return spark.connections
-      .map(connection => {
-        const connectedSpark = state.sparks.find(s => s.id === connection.sparkId2)
-        return connectedSpark
-      })
-      .filter(Boolean)
+      .map(connection => state.sparks.find(s => s.id === connection.sparkId2))
+      .filter((s): s is Spark => Boolean(s))
   }
 
   const getAvailableSparksToConnect = () => {
-    return state.sparks.filter(s => 
-      s.id !== spark.id && 
+    return state.sparks.filter(s =>
+      s.id !== spark.id &&
       !getConnectedSparks().some(connected => connected.id === s.id)
     )
   }
@@ -196,7 +192,7 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent 
+        <DialogContent
           className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto touch:p-6 touch:gap-6"
           onTouchStart={handleTouchStart}
         >
@@ -206,7 +202,7 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
               Update your spark's information, content, and settings. Changes are saved automatically.
             </DialogDescription>
           </DialogHeader>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4 touch:space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 touch:gap-6">
               <div className="space-y-2 touch:space-y-3">
@@ -296,8 +292,8 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
                     key={color.value}
                     type="button"
                     className={`w-10 h-10 rounded-full border-2 transition-all touch:w-12 touch:h-12 touch:min-w-[44px] touch:min-h-[44px] ${
-                      formData.color === color.value 
-                        ? "border-primary ring-2 ring-primary/20 scale-110" 
+                      formData.color === color.value
+                        ? "border-primary ring-2 ring-primary/20 scale-110"
                         : "border-gray-300 hover:border-gray-400 active:scale-95"
                     }`}
                     style={{ backgroundColor: color.value }}
@@ -328,7 +324,7 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
                   Connect
                 </Button>
               </div>
-              
+
               {connectedSparks.length > 0 ? (
                 <div className="flex flex-wrap gap-2 touch:gap-3">
                   {connectedSparks.map((connectedSpark) => (
@@ -361,7 +357,7 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
                   Add Todo
                 </Button>
               </div>
-              
+
               {spark.todos && spark.todos.length > 0 ? (
                 <div className="space-y-2 max-h-40 overflow-y-auto touch:max-h-60 touch:space-y-3">
                   {spark.todos.map((todo) => (
@@ -438,23 +434,23 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
             {/* File Upload Section */}
             <div className="space-y-2 touch:space-y-3">
               <Label className="touch:text-base">Attachments</Label>
-              <FileUploader 
-                sparkId={spark.id} 
-                attachments={spark.attachments || []} 
+              <FileUploader
+                sparkId={spark.id}
+                attachments={spark.attachments || []}
               />
             </div>
 
             <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end touch:pt-6 touch:gap-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
                 className="touch:w-full sm:touch:w-auto"
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={!formData.title.trim()}
                 className="touch:w-full sm:touch:w-auto"
               >
@@ -474,7 +470,7 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
               Create a connection between related sparks to build a network of ideas and track their relationships.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 touch:space-y-6">
             <div className="space-y-2 touch:space-y-3">
               <Label className="touch:text-base">Select a spark to connect with</Label>
@@ -493,14 +489,14 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
             </div>
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end touch:gap-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowConnectionDialog(false)}
                 className="touch:w-full sm:touch:w-auto"
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handleConnectSpark}
                 disabled={!selectedSparkToConnect}
                 className="touch:w-full sm:touch:w-auto"
@@ -513,10 +509,11 @@ export function SparkDetailDialog({ spark, open, onOpenChange }: SparkDetailDial
       </Dialog>
 
       {/* Add Todo Dialog */}
-      <AddTodoDialog 
-        open={showTodoDialog} 
+      <AddTodoDialog
+        open={showTodoDialog}
         onOpenChange={setShowTodoDialog}
         onAddTodo={(todoData) => actions.addTodo(spark.id, todoData)}
+        sparkId={spark.id}
       />
     </>
   )

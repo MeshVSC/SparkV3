@@ -226,12 +226,12 @@ export class AchievementEngine {
 
     // Get all achievements
     const allAchievements = await db.achievement.findMany()
-    
+
     // Get user's current achievements
     const userAchievements = await db.userAchievement.findMany({
       where: { userId }
     })
-    
+
     const unlockedIds = new Set(userAchievements.map(ua => ua.achievementId))
 
     // Check each achievement
@@ -239,11 +239,11 @@ export class AchievementEngine {
       if (unlockedIds.has(achievementTemplate.name)) continue
 
       const shouldUnlock = await this.shouldUnlockAchievement(userId, achievementTemplate, action, context)
-      
+
       if (shouldUnlock) {
         // Find or create the achievement
         let achievement = allAchievements.find(a => a.name === achievementTemplate.name)
-        
+
         if (!achievement) {
           achievement = await db.achievement.create({
             data: {
@@ -261,7 +261,7 @@ export class AchievementEngine {
           }
         })
 
-        unlocked.push(achievement)
+        unlocked.push({ ...achievement, type: achievement.type as unknown as AchievementType } as Achievement)
         totalXp += achievement.xpReward
       }
     }
@@ -271,7 +271,7 @@ export class AchievementEngine {
       await db.user.update({
         where: { id: userId },
         data: {
-          xp: {
+          totalXP: {
             increment: totalXp
           }
         }
@@ -414,9 +414,9 @@ export class AchievementEngine {
   private static async getUserTotalXP(userId: string): Promise<number> {
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { xp: true }
+      select: { totalXP: true }
     })
-    return user?.xp || 0
+    return user?.totalXP || 0
   }
 
   private static async getConnectionCount(userId: string): Promise<number> {
@@ -438,7 +438,7 @@ export class AchievementEngine {
     })
 
     const statuses = new Set(sparks.map(s => s.status))
-    return statuses.has("SEEDLING") && statuses.has("SAPLING") && 
+    return statuses.has("SEEDLING") && statuses.has("SAPLING") &&
            statuses.has("TREE") && statuses.has("FOREST")
   }
 
@@ -472,7 +472,7 @@ export class AchievementEngine {
 
   private static async getLinkCount(userId: string): Promise<number> {
     const result = await db.attachment.count({
-      where: { 
+      where: {
         spark: { userId },
         type: "LINK"
       }
@@ -492,11 +492,12 @@ export class AchievementEngine {
     })
 
     const unlockedIds = new Set(userAchievements.map(ua => ua.achievementId))
-    
+
     const achievements = allAchievements.map(achievement => ({
-      ...achievement,
+      ...(achievement as unknown as Achievement),
+      type: achievement.type as unknown as AchievementType,
       unlockedAt: userAchievements.find(ua => ua.achievementId === achievement.id)?.unlockedAt || null
-    }))
+    })) as (Achievement & { unlockedAt: Date | null })[]
 
     return {
       achievements,
@@ -508,8 +509,8 @@ export class AchievementEngine {
   static async initializeAchievements(): Promise<void> {
     for (const achievementTemplate of DEFAULT_ACHIEVEMENTS) {
       const exists = await db.achievement.findUnique({
-        where: { 
-          id: achievementTemplate.name.toLowerCase().replace(/\s+/g, "-") 
+        where: {
+          id: achievementTemplate.name.toLowerCase().replace(/\s+/g, "-")
         }
       })
 

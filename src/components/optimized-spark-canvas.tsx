@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useCallback, useMemo, memo } from "react"
@@ -33,11 +32,11 @@ const ConnectionLine = memo(({ line }: { line: ConnectionLine }) => (
 ))
 
 // Memoized spark item for virtualization
-const SparkItem = memo(({ 
-  columnIndex, 
-  rowIndex, 
-  style, 
-  data 
+const SparkItem = memo(({
+  columnIndex,
+  rowIndex,
+  style,
+  data
 }: {
   columnIndex: number
   rowIndex: number
@@ -51,7 +50,7 @@ const SparkItem = memo(({
 
   return (
     <div style={style}>
-      <SparkCard 
+      <SparkCard
         spark={spark}
         style={{
           position: 'absolute',
@@ -66,8 +65,8 @@ const SparkItem = memo(({
 export const SparkCanvas = memo(() => {
   const { state, actions } = useSpark()
   const [activeSpark, setActiveSpark] = useState<Spark | null>(null)
-  const [viewportBounds, setViewportBounds] = useState({ 
-    minX: 0, minY: 0, maxX: 1000, maxY: 800 
+  const [viewportBounds, setViewportBounds] = useState({
+    minX: 0, minY: 0, maxX: 1000, maxY: 800
   })
 
   const sensors = useSensors(
@@ -83,9 +82,9 @@ export const SparkCanvas = memo(() => {
     return state.sparks.filter(spark => {
       const x = spark.positionX || 0
       const y = spark.positionY || 0
-      return x >= viewportBounds.minX - 300 && 
+      return x >= viewportBounds.minX - 300 &&
              x <= viewportBounds.maxX + 300 &&
-             y >= viewportBounds.minY - 300 && 
+             y >= viewportBounds.minY - 300 &&
              y <= viewportBounds.maxY + 300
     })
   }, [state.sparks, viewportBounds])
@@ -99,7 +98,7 @@ export const SparkCanvas = memo(() => {
         spark.connections.forEach(connection => {
           const connectedSpark = state.sparks.find(s => s.id === connection.sparkId2)
           if (connectedSpark) {
-            if (!lines.some(line => 
+            if (!lines.some(line =>
               (line.fromSparkId === spark.id && line.toSparkId === connectedSpark.id) ||
               (line.fromSparkId === connectedSpark.id && line.toSparkId === spark.id)
             )) {
@@ -136,7 +135,7 @@ export const SparkCanvas = memo(() => {
         const newX = (spark.positionX || 0) + delta.x
         const newY = (spark.positionY || 0) + delta.y
 
-        actions.updateSparkPosition(sparkId, newX, newY)
+        actions.updateSpark(sparkId, { positionX: newX, positionY: newY })
       }
     }
 
@@ -152,13 +151,13 @@ export const SparkCanvas = memo(() => {
     <div className="relative w-full h-full overflow-hidden bg-background">
       {/* Canvas Controls */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
-        <button 
+        <button
           className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm"
           onClick={() => actions.setViewMode('kanban')}
         >
           Kanban View
         </button>
-        <button 
+        <button
           className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm"
           onClick={() => actions.setViewMode('timeline')}
         >
@@ -198,8 +197,8 @@ export const SparkCanvas = memo(() => {
 
         <DragOverlay>
           {activeSpark ? (
-            <SparkCard 
-              spark={activeSpark} 
+            <SparkCard
+              spark={activeSpark}
               style={{ opacity: 0.8 }}
             />
           ) : null}

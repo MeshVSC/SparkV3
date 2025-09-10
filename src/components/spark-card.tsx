@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  CheckCircle, 
-  Circle, 
+import {
+  MoreVertical,
+  Edit,
+  Trash2,
+  CheckCircle,
+  Circle,
   Plus,
   Target,
   Zap,
@@ -30,12 +30,13 @@ import { CommentSection } from "@/components/ui/comment-section"
 
 interface SparkCardProps {
   spark: Spark
-  isSelected: boolean
-  onClick: () => void
+  isSelected?: boolean
+  onClick?: () => void
   isDragging?: boolean
+  style?: React.CSSProperties
 }
 
-export function SparkCard({ spark, isSelected, onClick, isDragging = false }: SparkCardProps) {
+export function SparkCard({ spark, isSelected = false, onClick, isDragging = false, style }: SparkCardProps) {
   const { actions } = useSpark()
   const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [showTodos, setShowTodos] = useState(false)
@@ -88,10 +89,7 @@ export function SparkCard({ spark, isSelected, onClick, isDragging = false }: Sp
           ${isDragging ? 'touch-drag-active opacity-90' : 'drag-transition'}
           border-l-4 touch:w-full touch:max-w-none touch:shadow-md touch-card
         `}
-        style={{ 
-          borderLeftColor: spark.color,
-          touchAction: 'manipulation'
-        }}
+        style={{ ...(style || {}), borderLeftColor: spark.color, touchAction: 'manipulation' }}
         onClick={onClick}
       >
         <CardHeader className="pb-2 touch:pb-3 touch:p-4">
@@ -104,9 +102,9 @@ export function SparkCard({ spark, isSelected, onClick, isDragging = false }: Sp
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="h-6 w-6 p-0 touch:h-10 touch:w-10 touch:min-h-[44px] touch:min-w-[44px]"
                   onClick={(e) => e.stopPropagation()}
                   aria-label="Spark options menu"
@@ -115,29 +113,29 @@ export function SparkCard({ spark, isSelected, onClick, isDragging = false }: Sp
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="touch:min-w-[200px]">
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setShowDetailDialog(true)}
                   className="touch:py-3 touch:px-4 touch:text-base"
                 >
                   <Edit className="h-3 w-3 mr-2 touch:h-4 touch:w-4 touch:mr-3" />
                   Edit Details
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setShowTodos(!showTodos)}
                   className="touch:py-3 touch:px-4 touch:text-base"
                 >
                   <Target className="h-3 w-3 mr-2 touch:h-4 touch:w-4 touch:mr-3" />
                   {showTodos ? 'Hide' : 'Show'} Todos
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setShowComments(!showComments)}
                   className="touch:py-3 touch:px-4 touch:text-base"
                 >
                   <MessageSquare className="h-3 w-3 mr-2 touch:h-4 touch:w-4 touch:mr-3" />
                   {showComments ? 'Hide' : 'Show'} Comments
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={handleDelete} 
+                <DropdownMenuItem
+                  onClick={handleDelete}
                   className="text-destructive touch:py-3 touch:px-4 touch:text-base"
                 >
                   <Trash2 className="h-3 w-3 mr-2 touch:h-4 touch:w-4 touch:mr-3" />
@@ -146,11 +144,11 @@ export function SparkCard({ spark, isSelected, onClick, isDragging = false }: Sp
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 touch:gap-3 touch:mt-2">
-              <Badge 
-                variant="secondary" 
+              <Badge
+                variant="secondary"
                 className={`text-xs touch:text-sm touch:py-1 touch:px-2 ${getStatusColor(spark.status)}`}
               >
                 {spark.status.toLowerCase()}
@@ -159,7 +157,7 @@ export function SparkCard({ spark, isSelected, onClick, isDragging = false }: Sp
                 Lvl {spark.level}
               </Badge>
             </div>
-            
+
             {/* Collaboration indicator */}
             {/* <SparkCollaborationIndicator sparkId={spark.id} /> */}
           </div>
@@ -196,7 +194,7 @@ export function SparkCard({ spark, isSelected, onClick, isDragging = false }: Sp
           {showTodos && spark.todos && spark.todos.length > 0 && (
             <div className="space-y-1 max-h-32 overflow-y-auto touch:space-y-2 touch:max-h-40">
               {spark.todos.slice(0, 3).map((todo) => (
-                <div 
+                <div
                   key={todo.id}
                   className="flex items-center gap-2 text-xs touch:gap-3 touch:text-sm touch:py-2"
                   onClick={(e) => e.stopPropagation()}

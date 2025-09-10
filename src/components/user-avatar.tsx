@@ -25,7 +25,7 @@ export function UserAvatar({ showMenu = true, size = "md", onClick }: UserAvatar
 
   const sizeClasses = {
     sm: "h-6 w-6 text-xs",
-    md: "h-8 w-8 text-sm", 
+    md: "h-8 w-8 text-sm",
     lg: "h-10 w-10 text-base"
   }
 
@@ -43,11 +43,11 @@ export function UserAvatar({ showMenu = true, size = "md", onClick }: UserAvatar
   }
 
   return (
-    <Avatar 
+    <Avatar
       className={`${sizeClasses[size]} cursor-pointer hover:opacity-80 transition-opacity`}
       onClick={onClick}
     >
-      <AvatarImage src={session.user.avatar || ""} alt={session.user.name || ""} />
+      <AvatarImage src={(session.user as any).image || ""} alt={session.user.name || session.user.email || ""} />
       <AvatarFallback>
         {userInitials}
       </AvatarFallback>

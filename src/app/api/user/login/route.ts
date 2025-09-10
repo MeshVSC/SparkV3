@@ -13,19 +13,22 @@ export async function POST(req: NextRequest) {
 
     // Update user streak
     const streakResult = await GamificationService.updateStreak(session.user.id)
-    
+
     if (!streakResult.success) {
       return NextResponse.json({ error: "Failed to update streak" }, { status: 500 })
     }
 
     // Award XP for daily login (only if streak increased or first login)
-    let xpResult = null
+    let xpAwarded = 0
     if (streakResult.streak !== streakResult.previousStreak) {
-      xpResult = await GamificationService.awardXP(session.user.id, {
+      const res = await GamificationService.awardXP(session.user.id, {
         type: 'DAILY_LOGIN',
         amount: 50, // 50 XP for daily login
         description: 'Daily login bonus'
       })
+      if (res && (res as any).success) {
+        xpAwarded = (res as any).xpAwarded ?? 0
+      }
     }
 
     // Check for new achievements
@@ -35,7 +38,7 @@ export async function POST(req: NextRequest) {
       message: "Login processed successfully",
       streak: streakResult.streak,
       previousStreak: streakResult.previousStreak,
-      xpAwarded: xpResult?.xpAwarded || 0,
+      xpAwarded,
       newAchievements: achievementResult.newlyUnlocked || []
     })
   } catch (error) {
