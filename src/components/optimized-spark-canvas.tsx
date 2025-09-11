@@ -201,7 +201,24 @@ export const SparkCanvas = memo(() => {
     const x = event.clientX - rect.left
     const y = event.clientY - rect.top
     
-    updateCursor(x, y)
+    // Add scroll offset to cursor position for accurate tracking
+    const scrollX = canvasRef.current.scrollLeft || 0
+    const scrollY = canvasRef.current.scrollTop || 0
+    
+    updateCursor(x + scrollX, y + scrollY)
+  }, [updateCursor])
+
+  // Handle spark selection
+  const handleSparkClick = useCallback((spark: Spark) => {
+    actions.selectSpark(spark)
+  }, [actions])
+
+  // Handle mouse leave to hide cursor
+  const handleMouseLeave = useCallback(() => {
+    // Clear cursor after leaving canvas
+    setTimeout(() => {
+      updateCursor(-1000, -1000) // Move cursor off-screen
+    }, 100)
   }, [updateCursor])
 
   return (
@@ -209,6 +226,7 @@ export const SparkCanvas = memo(() => {
       ref={canvasRef}
       className="relative w-full h-full overflow-hidden bg-background"
       onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Canvas Controls and Presence Indicators */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
@@ -258,6 +276,8 @@ export const SparkCanvas = memo(() => {
             <SparkCard
               key={spark.id}
               spark={spark}
+              isSelected={state.selectedSpark?.id === spark.id}
+              onClick={() => handleSparkClick(spark)}
               style={{
                 position: 'absolute',
                 left: spark.positionX || 0,

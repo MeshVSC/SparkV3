@@ -41,9 +41,13 @@ const CursorPointer = memo(({ cursor }: { cursor: UserCursor }) => {
           />
         </svg>
         
-        {/* User info tooltip */}
-        <div 
-          className="absolute left-5 top-2 flex items-center gap-2 px-2 py-1 rounded-md shadow-lg text-xs whitespace-nowrap"
+        {/* User info tooltip - only show on hover or when cursor is active */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ delay: 0.5, duration: 0.2 }}
+          className="absolute left-5 top-2 flex items-center gap-2 px-2 py-1 rounded-md shadow-lg text-xs whitespace-nowrap z-10"
           style={{ 
             backgroundColor: cursor.color,
             color: 'white'
@@ -52,13 +56,13 @@ const CursorPointer = memo(({ cursor }: { cursor: UserCursor }) => {
           {cursor.avatarUrl && (
             <Avatar className="w-4 h-4">
               <AvatarImage src={cursor.avatarUrl} />
-              <AvatarFallback className="text-xs">
+              <AvatarFallback className="text-xs font-medium">
                 {cursor.username[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
           )}
           <span className="font-medium">{cursor.username}</span>
-        </div>
+        </motion.div>
       </div>
     </motion.div>
   );

@@ -44,6 +44,7 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
   const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [showTodos, setShowTodos] = useState(false)
   const [showComments, setShowComments] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   // Get presence users for this spark
   const { users } = usePresence({
@@ -51,7 +52,7 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
     userId: user?.id || 'guest-user',
     username: user?.name || user?.email || 'Guest User',
     avatarUrl: user?.avatar,
-    enabled: false // Only enable when spark is selected or being viewed
+    enabled: isSelected || showDetailDialog // Enable when spark is selected or being edited
   })
 
   const getStatusColor = (status: string) => {
@@ -82,6 +83,26 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
     return (spark.xp % 100) / 100 * 100
   }
 
+  // Get border color for presence indication
+  const getPresenceBorderColor = () => {
+    if (users.length === 0) return ''
+    
+    // If multiple users, show gradient border
+    if (users.length > 1) {
+      const colors = users.slice(0, 3).map(u => u.color).join(', ')
+      return {
+        background: `linear-gradient(45deg, ${colors})`,
+        padding: '2px'
+      }
+    }
+    
+    // Single user, show solid border
+    return {
+      borderColor: users[0].color,
+      borderWidth: '2px'
+    }
+  }
+
   const handleQuickTodoComplete = async (todoId: string, completed: boolean) => {
     await actions.updateTodo(spark.id, todoId, { completed })
     // Refresh user stats after XP award
@@ -94,16 +115,27 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
 
   return (
     <>
-      <Card
-        className={`
-          kanban-card w-64 shadow-lg transition-all duration-200 cursor-pointer touch-manipulation touch-feedback
-          ${isSelected ? 'ring-2 ring-primary shadow-xl' : 'hover:shadow-xl active:shadow-2xl active:scale-[1.02]'}
-          ${isDragging ? 'touch-drag-active opacity-90' : 'drag-transition'}
-          border-l-4 touch:w-full touch:max-w-none touch:shadow-md touch-card
-        `}
-        style={{ ...(style || {}), borderLeftColor: spark.color, touchAction: 'manipulation' }}
-        onClick={onClick}
+      <div 
+        style={users.length > 1 ? getPresenceBorderColor() : {}}
+        className={users.length > 1 ? 'rounded-lg' : ''}
       >
+        <Card
+          className={`
+            kanban-card w-64 shadow-lg transition-all duration-200 cursor-pointer touch-manipulation touch-feedback
+            ${isSelected ? 'ring-2 ring-primary shadow-xl' : 'hover:shadow-xl active:shadow-2xl active:scale-[1.02]'}
+            ${isDragging ? 'touch-drag-active opacity-90' : 'drag-transition'}
+            ${users.length > 0 && users.length === 1 ? 'border-2' : 'border-l-4'} 
+            ${users.length === 0 ? 'touch:w-full touch:max-w-none touch:shadow-md touch-card' : ''}
+          `}
+          style={{ 
+            ...(style || {}), 
+            ...(users.length === 1 ? getPresenceBorderColor() : { borderLeftColor: spark.color }),
+            touchAction: 'manipulation' 
+          }}
+          onClick={onClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
         <CardHeader className="pb-2 touch:pb-3 touch:p-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2 flex-1 min-w-0 touch:gap-3">
@@ -170,12 +202,14 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
               </Badge>
             </div>
 
-            {/* Activity indicator */}
-            <SparkActivityIndicator 
-              sparkId={spark.id} 
-              users={users}
-              size="sm"
-            />
+            {/* Activity indicator - only show when users are present */}
+            {users.length > 0 && (
+              <SparkActivityIndicator 
+                sparkId={spark.id} 
+                users={users}
+                size="sm"
+              />
+            )}
           </div>
         </CardHeader>
 
@@ -268,7 +302,8 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
       <SparkDetailDialog
         spark={spark}

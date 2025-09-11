@@ -40,33 +40,33 @@ export const SparkActivityIndicator = memo(({
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
-      className={`absolute top-2 right-2 flex items-center ${className}`}
+      className={`absolute -top-1 -right-1 flex items-center z-20 ${className}`}
     >
       {/* Activity pulse indicator */}
       <div className="relative mr-1">
         <motion.div
-          className="w-2 h-2 bg-green-500 rounded-full"
+          className="w-2 h-2 bg-green-500 rounded-full shadow-sm"
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [1, 0.7, 1]
+            scale: [1, 1.3, 1],
+            opacity: [1, 0.6, 1]
           }}
           transition={{
-            duration: 2,
+            duration: 1.5,
             repeat: Infinity,
             ease: "easeInOut"
           }}
         />
         <motion.div
-          className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full"
+          className="absolute inset-0 w-2 h-2 bg-green-400 rounded-full"
           animate={{
-            scale: [1, 1.5, 1],
-            opacity: [0.5, 0, 0.5]
+            scale: [1, 2, 1],
+            opacity: [0.3, 0, 0.3]
           }}
           transition={{
-            duration: 2,
+            duration: 1.5,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 0.5
+            delay: 0.3
           }}
         />
       </div>

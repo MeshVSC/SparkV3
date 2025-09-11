@@ -77,6 +77,11 @@ export class PresenceService {
         this.handleCursorUpdate(socket, data);
       });
 
+      // Hide cursor
+      socket.on('cursor_hide', (data: { sparkId: string }) => {
+        this.handleCursorHide(socket, data);
+      });
+
       // Handle disconnect
       socket.on('disconnect', () => {
         this.handleDisconnect(socket);
@@ -206,6 +211,25 @@ export class PresenceService {
 
     // Broadcast cursor update to other users
     socket.to(`presence_${sparkId}`).emit('cursor_moved', cursor);
+  }
+
+  private handleCursorHide(socket: Socket, data: { sparkId: string }): void {
+    const { sparkId } = data;
+    const socketId = socket.id;
+
+    const room = this.rooms.get(sparkId);
+    if (!room) return;
+
+    // Find user by socket ID
+    const user = Array.from(room.users.values()).find(u => u.socketId === socketId);
+    if (!user) return;
+
+    // Remove cursor from room
+    room.cursors.delete(user.userId);
+    user.cursor = undefined;
+
+    // Broadcast cursor hide to other users
+    socket.to(`presence_${sparkId}`).emit('cursor_hidden', { userId: user.userId });
   }
 
   private handleDisconnect(socket: Socket): void {

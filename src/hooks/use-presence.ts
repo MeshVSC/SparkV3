@@ -99,6 +99,13 @@ export function usePresence(options: UsePresenceOptions) {
       }));
     });
 
+    socket.on('cursor_hidden', (data: { userId: string }) => {
+      setState(prev => ({
+        ...prev,
+        cursors: prev.cursors.filter(c => c.userId !== data.userId)
+      }));
+    });
+
     socket.on('presence_error', (data: { message: string }) => {
       setState(prev => ({ ...prev, error: data.message }));
     });
@@ -118,6 +125,12 @@ export function usePresence(options: UsePresenceOptions) {
   const updateCursor = useCallback((x: number, y: number) => {
     if (!socketRef.current || !state.isConnected) return;
 
+    // Don't send cursor updates for off-screen positions
+    if (x < -999 || y < -999) {
+      socketRef.current.emit('cursor_hide', { sparkId });
+      return;
+    }
+
     socketRef.current.emit('cursor_update', {
       sparkId,
       x,
@@ -130,12 +143,10 @@ export function usePresence(options: UsePresenceOptions) {
     }
 
     cursorTimeoutRef.current = setTimeout(() => {
-      // Hide cursor after 30 seconds of inactivity
-      setState(prev => ({
-        ...prev,
-        cursors: prev.cursors.filter(c => c.userId !== userId)
-      }));
-    }, 30000);
+      if (socketRef.current) {
+        socketRef.current.emit('cursor_hide', { sparkId });
+      }
+    }, 5000); // Hide cursor after 5 seconds of inactivity
   }, [sparkId, userId, state.isConnected]);
 
   // Leave presence room
