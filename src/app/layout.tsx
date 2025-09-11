@@ -28,11 +28,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Spark Team" }],
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon-192x192.png",
-    apple: "/icon-192x192.png",
+    icon: "/icons/icon-192x192.png",
+    apple: "/icons/icon-192x192.png",
   },
-  themeColor: "#10b981",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Spark",
+  },
   openGraph: {
     title: "Spark - Visual Idea Evolution Platform",
     description: "Nurture concepts from initial inspiration to completion with gamified, visual interaction",
@@ -47,6 +50,17 @@ export const metadata: Metadata = {
   },
 };
 
+export function generateViewport() {
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
+    themeColor: '#3b82f6',
+  };
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,6 +68,47 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#3b82f6" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Spark" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                      
+                      // Check for updates
+                      registration.addEventListener('updatefound', function() {
+                        console.log('ServiceWorker update found');
+                        const installingWorker = registration.installing;
+                        if (installingWorker) {
+                          installingWorker.addEventListener('statechange', function() {
+                            if (installingWorker.state === 'installed') {
+                              if (navigator.serviceWorker.controller) {
+                                console.log('New content available, refresh to update');
+                                // Optionally show update notification to user
+                              }
+                            }
+                          });
+                        }
+                      });
+                    })
+                    .catch(function(err) {
+                      console.log('ServiceWorker registration failed: ', err);
+                    });
+                });
+              }
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >

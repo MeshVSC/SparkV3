@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spark - You're Offline</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .container {
+      text-align: center;
+      max-width: 500px;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .spark-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      animation: pulse 2s infinite;
+    }
+    
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    
+    .button {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin: 0 0.5rem;
+    }
+    
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    }
+    
+    .secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .secondary:hover {
+      box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+    }
+    
+    .network-status {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      margin-right: 0.5rem;
+      animation: blink 1.5s infinite;
+    }
+    
+    .online .status-indicator {
+      background: #22c55e;
+      animation: none;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.3; }
+    }
+    
+    @media (max-width: 640px) {
+      .container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      p {
+        font-size: 1rem;
+      }
+      
+      .button {
+        display: block;
+        margin: 0.5rem 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spark-icon">⚡</div>
+    <h1>You're Currently Offline</h1>
+    <p>
+      Spark needs an internet connection to sync your ideas and workspaces. 
+      Please check your connection and try again.
+    </p>
+    
+    <button class="button" onclick="window.location.reload()">
+      Try Again
+    </button>
+    
+    <button class="button secondary" onclick="goHome()">
+      Go Home
+    </button>
+    
+    <div class="network-status" id="networkStatus">
+      <span class="status-indicator"></span>
+      <span id="statusText">You're offline</span>
+    </div>
+  </div>
+
+  <script>
+    function goHome() {
+      window.location.href = '/';
+    }
+    
+    // Monitor network status
+    function updateNetworkStatus() {
+      const statusElement = document.getElementById('networkStatus');
+      const statusText = document.getElementById('statusText');
+      
+      if (navigator.onLine) {
+        statusElement.classList.add('online');
+        statusText.textContent = 'Connection restored - you can try again';
+      } else {
+        statusElement.classList.remove('online');
+        statusText.textContent = "You're offline";
+      }
+    }
+    
+    // Initial check
+    updateNetworkStatus();
+    
+    // Listen for online/offline events
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    
+    // Auto-reload when back online
+    window.addEventListener('online', () => {
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

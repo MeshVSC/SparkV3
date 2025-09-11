@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spark - Workspaces Offline</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .container {
+      text-align: center;
+      max-width: 600px;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .workspace-icon {
+      font-size: 4rem;
+      margin-bottom: 1.5rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    
+    .feature-list {
+      text-align: left;
+      margin: 2rem 0;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+      color: #cbd5e1;
+    }
+    
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .feature-icon {
+      margin-right: 1rem;
+      opacity: 0.5;
+    }
+    
+    .button {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin: 0 0.5rem;
+    }
+    
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    }
+    
+    .secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .secondary:hover {
+      box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @media (max-width: 640px) {
+      .container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      p {
+        font-size: 1rem;
+      }
+      
+      .button {
+        display: block;
+        margin: 0.5rem 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="workspace-icon">🏗️</div>
+    <h1>Workspaces Temporarily Offline</h1>
+    <p>
+      Your workspaces need an internet connection to sync with the cloud. 
+      Once you're back online, you'll have access to all your ideas and projects.
+    </p>
+    
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="feature-icon">💡</span>
+        View and organize your ideas
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🎯</span>
+        Track project progress
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🤝</span>
+        Collaborate with team members
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">🔄</span>
+        Real-time synchronization
+      </div>
+    </div>
+    
+    <button class="button" onclick="window.location.reload()">
+      Try Again
+    </button>
+    
+    <button class="button secondary" onclick="goHome()">
+      Go Home
+    </button>
+  </div>
+
+  <script>
+    function goHome() {
+      window.location.href = '/';
+    }
+    
+    // Auto-reload when back online
+    window.addEventListener('online', () => {
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
