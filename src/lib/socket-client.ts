@@ -4,9 +4,15 @@ const URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3000";
 
 let socket: Socket | null = null;
 
-export function getSocket(): Socket {
+export function getSocket(): Socket | null {
+  // Only create socket in browser environment
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
   if (!socket) {
     socket = io(URL, {
+      path: '/api/socketio',
       transports: ["websocket"],
       autoConnect: true,
       reconnection: true,
@@ -16,9 +22,7 @@ export function getSocket(): Socket {
       timeout: 10000,
       withCredentials: true,
     });
-    if (typeof window !== "undefined") {
-      (window as any).__socketClient = socket;
-    }
+    (window as any).__socketClient = socket;
   }
   return socket;
 }

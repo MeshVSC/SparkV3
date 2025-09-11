@@ -4,6 +4,8 @@ import { socketNotificationIntegration } from '@/lib/notification/SocketNotifica
 import { emailServiceIntegration } from '@/lib/email/EmailServiceIntegration';
 import { CollaborativeEditingService } from '@/lib/collaborative-editing';
 import { PresenceService } from '@/lib/presence-service';
+import { BulkOperationsService } from '@/lib/services/bulk-operations';
+import { setupBulkOperationsSocket } from '@/lib/socket/bulk-operations-socket';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import next from 'next';
@@ -52,6 +54,10 @@ async function createCustomServer() {
     // Initialize presence service
     const presenceService = new PresenceService(io);
     
+    // Initialize bulk operations service with Socket.IO
+    const bulkOperationsService = new BulkOperationsService(io);
+    const bulkOpsSocket = setupBulkOperationsSocket(io, bulkOperationsService);
+    
     // Initialize notification integration with Socket.IO
     socketNotificationIntegration.initialize(io);
     
@@ -70,6 +76,7 @@ async function createCustomServer() {
       console.log(`> Socket.IO server running at ws://${hostname}:${currentPort}/api/socketio`);
       console.log(`> Collaborative editing service initialized`);
       console.log(`> Presence service initialized`);
+      console.log(`> Bulk operations service initialized with WebSocket support`);
       console.log(`> Email service integration initialized`);
     });
 
