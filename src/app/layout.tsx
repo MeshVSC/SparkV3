@@ -26,6 +26,13 @@ export const metadata: Metadata = {
   description: "Nurture concepts from initial inspiration to completion with gamified, visual interaction and AI integration.",
   keywords: ["Spark", "ideas", "visual", "gamification", "AI", "development", "creativity"],
   authors: [{ name: "Spark Team" }],
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192x192.png",
+    apple: "/icon-192x192.png",
+  },
+  themeColor: "#10b981",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   openGraph: {
     title: "Spark - Visual Idea Evolution Platform",
     description: "Nurture concepts from initial inspiration to completion with gamified, visual interaction",

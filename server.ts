@@ -55,6 +55,12 @@ async function createCustomServer() {
     // Initialize notification integration with Socket.IO
     socketNotificationIntegration.initialize(io);
     
+    // Initialize collaboration notification integration
+    const { default: CollaborationNotificationIntegration } = await import('./src/lib/notification/CollaborationNotificationIntegration');
+    const collaborationNotificationIntegration = new CollaborationNotificationIntegration(
+      collaborativeEditingService
+    );
+    
     // Initialize email service integration
     await emailServiceIntegration.getHealthStatus();
 
