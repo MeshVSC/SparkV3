@@ -276,7 +276,7 @@ export class SparkMCPServer {
     return this.readSparks(query)
   }
 
-  async connectSparks(sparkId1: string, sparkId2: string, type?: string, metadata?: any): Promise<void> {
+  async connectSparks(sparkId1: string, sparkId2: string, type?: string, metadata?: any, userId?: string, username?: string): Promise<void> {
     try {
       // Check if both sparks exist
       const spark1 = await db.spark.findUnique({ where: { id: sparkId1 } })
@@ -300,15 +300,39 @@ export class SparkMCPServer {
         throw new Error("Sparks are already connected")
       }
 
+      const connectionType = (type as any) || "RELATED_TO"
+      
       // Create connection
-      await db.sparkConnection.create({
+      const newConnection = await db.sparkConnection.create({
         data: {
           sparkId1,
           sparkId2,
-          type: (type as any) || "RELATED_TO",
+          type: connectionType,
           metadata: metadata || null
         }
       })
+
+      // Record in history if user info is provided
+      if (userId && username) {
+        const { connectionHistoryService } = await import("@/lib/connection-history-service")
+        await connectionHistoryService.recordChange({
+          connectionId: newConnection.id,
+          sparkId1,
+          sparkId2,
+          changeType: "CREATED" as any,
+          userId,
+          username,
+          afterState: {
+            id: newConnection.id,
+            sparkId1: newConnection.sparkId1,
+            sparkId2: newConnection.sparkId2,
+            type: newConnection.type,
+            metadata: newConnection.metadata,
+            createdAt: newConnection.createdAt
+          },
+          metadata: { source: "mcp_server" }
+        })
+      }
 
       // Award XP for connecting sparks
       await Promise.all([

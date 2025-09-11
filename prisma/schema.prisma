@@ -42,6 +42,7 @@ model User {
   templates       Template[]
   searchHistory   SearchHistory[]
   savedSearches   SavedSearch[]
+  connectionHistory ConnectionHistory[]
   
   @@map("users")
 }
@@ -109,6 +110,35 @@ model SparkConnection {
   spark2 Spark @relation("SparkConnections2", fields: [sparkId2], references: [id], onDelete: Cascade)
   
   @@unique([sparkId1, sparkId2])
+}
+
+model ConnectionHistory {
+  id           String                  @id @default(cuid())
+  connectionId String?                 // Null for create operations
+  sparkId1     String
+  sparkId2     String
+  changeType   ConnectionChangeType
+  userId       String
+  username     String
+  
+  // Snapshot data for rollback
+  beforeState  Json?                   // Connection state before change
+  afterState   Json?                   // Connection state after change
+  
+  // Change metadata
+  metadata     Json?                   // Additional change context
+  reason       String?                 // Optional reason for change
+  
+  createdAt    DateTime                @default(now())
+  
+  // Relations
+  user         User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([connectionId])
+  @@index([sparkId1, sparkId2])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("connection_history")
 }
 
 model Achievement {
@@ -424,4 +454,10 @@ enum EntityType {
   SPARK
   TODO
   ATTACHMENT
+}
+
+enum ConnectionChangeType {
+  CREATED
+  MODIFIED
+  DELETED
 }
