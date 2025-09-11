@@ -65,26 +65,26 @@ const todoFields: FieldConfig[] = [
 
 export function ExportDialog({ open, onOpenChange, sparks }: ExportDialogProps) {
   const [exportType, setExportType] = useState<"sparks" | "todos">("sparks")
-  const [selectedSparkFields, setSelectedSparkFields] = useState<string[]>(
+  const [selectedSparkFields, setSelectedSparkFields] = useState<Array<string>>(
     sparkFields.filter(field => field.default).map(field => field.key)
   )
-  const [selectedTodoFields, setSelectedTodoFields] = useState<string[]>(
+  const [selectedTodoFields, setSelectedTodoFields] = useState<Array<string>>(
     todoFields.filter(field => field.default).map(field => field.key)
   )
   const [isExporting, setIsExporting] = useState(false)
   const { toast } = useToast()
 
   const handleSparkFieldChange = (fieldKey: string, checked: boolean) => {
-    setSelectedSparkFields(prev => 
-      checked 
+    setSelectedSparkFields(prev =>
+      checked
         ? [...prev, fieldKey]
         : prev.filter(key => key !== fieldKey)
     )
   }
 
   const handleTodoFieldChange = (fieldKey: string, checked: boolean) => {
-    setSelectedTodoFields(prev => 
-      checked 
+    setSelectedTodoFields(prev =>
+      checked
         ? [...prev, fieldKey]
         : prev.filter(key => key !== fieldKey)
     )
@@ -106,28 +106,29 @@ export function ExportDialog({ open, onOpenChange, sparks }: ExportDialogProps) 
     }
   }
 
-  const serializeTags = (tags: string | null | undefined): string => {
-    if (!tags) return ""
-    try {
-      if (typeof tags === "string") {
-        // Try to parse as JSON first
-        try {
-          const parsed = JSON.parse(tags)
-          return Array.isArray(parsed) ? parsed.join(", ") : tags
-        } catch {
-          return tags
-        }
+const serializeTags = (tags: unknown): string => {
+  if (!tags) return "";
+  try {
+    if (typeof tags === "string") {
+      try {
+        const parsed = JSON.parse(tags);
+        if (Array.isArray(parsed)) return parsed.join(", ");
+        return tags;
+      } catch {
+        return tags;
       }
-      return Array.isArray(tags) ? tags.join(", ") : String(tags)
-    } catch {
-      return ""
     }
+    if (Array.isArray(tags)) return tags.join(", ");
+    return String(tags);
+  } catch {
+    return "";
   }
+};
 
   const processSparkData = (sparks: Spark[], fields: string[]) => {
     return sparks.map(spark => {
       const row: Record<string, any> = {}
-      
+
       fields.forEach(field => {
         switch (field) {
           case "tags":
@@ -150,19 +151,19 @@ export function ExportDialog({ open, onOpenChange, sparks }: ExportDialogProps) 
             row[field] = spark[field as keyof Spark] || ""
         }
       })
-      
+
       return row
     })
   }
 
   const processTodoData = (sparks: Spark[], fields: string[]) => {
     const todos: any[] = []
-    
+
     sparks.forEach(spark => {
       if (spark.todos) {
         spark.todos.forEach(todo => {
           const row: Record<string, any> = {}
-          
+
           fields.forEach(field => {
             switch (field) {
               case "sparkTitle":
@@ -179,12 +180,12 @@ export function ExportDialog({ open, onOpenChange, sparks }: ExportDialogProps) 
                 row[field] = todo[field as keyof Todo] || ""
             }
           })
-          
+
           todos.push(row)
         })
       }
     })
-    
+
     return todos
   }
 
@@ -264,8 +265,8 @@ export function ExportDialog({ open, onOpenChange, sparks }: ExportDialogProps) 
 
   const currentFields = exportType === "sparks" ? sparkFields : todoFields
   const selectedFields = exportType === "sparks" ? selectedSparkFields : selectedTodoFields
-  const totalData = exportType === "sparks" 
-    ? sparks.length 
+  const totalData = exportType === "sparks"
+    ? sparks.length
     : sparks.reduce((sum, spark) => sum + (spark.todos?.length || 0), 0)
 
   return (
@@ -317,7 +318,7 @@ export function ExportDialog({ open, onOpenChange, sparks }: ExportDialogProps) 
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => exportType === "sparks" 
+                  onClick={() => exportType === "sparks"
                     ? setSelectedSparkFields([])
                     : setSelectedTodoFields([])
                   }
@@ -332,8 +333,8 @@ export function ExportDialog({ open, onOpenChange, sparks }: ExportDialogProps) 
             <div className="max-h-[40vh] overflow-y-auto space-y-3">
               {currentFields.map((field) => {
                 const isSelected = selectedFields.includes(field.key)
-                const handleChange = exportType === "sparks" 
-                  ? handleSparkFieldChange 
+                const handleChange = exportType === "sparks"
+                  ? handleSparkFieldChange
                   : handleTodoFieldChange
 
                 return (

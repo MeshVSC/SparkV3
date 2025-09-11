@@ -1,6 +1,13 @@
 import { db } from "@/lib/db"
-import { ConnectionChangeType, ConnectionType } from "@prisma/client"
+import { ConnectionType } from "@prisma/client"
 import { SparkConnection } from "@/types/spark"
+
+// Local enum until Prisma schema exposes it
+export enum ConnectionChangeType {
+  CREATED = "CREATED",
+  MODIFIED = "MODIFIED",
+  DELETED = "DELETED",
+}
 
 export interface ConnectionHistoryEntry {
   id: string
@@ -42,7 +49,7 @@ export class ConnectionHistoryService {
    * Record a connection change in history
    */
   async recordChange(data: CreateConnectionHistoryData): Promise<ConnectionHistoryEntry> {
-    return await db.connectionHistory.create({
+    return await (db as any).connectionHistory.create({
       data: {
         connectionId: data.connectionId || null,
         sparkId1: data.sparkId1,
@@ -62,13 +69,13 @@ export class ConnectionHistoryService {
    * Get connection history for a specific connection
    */
   async getConnectionHistory(
-    sparkId1: string, 
-    sparkId2: string, 
+    sparkId1: string,
+    sparkId2: string,
     options: { limit?: number; offset?: number } = {}
   ): Promise<ConnectionHistoryEntry[]> {
     const { limit = 50, offset = 0 } = options
 
-    return await db.connectionHistory.findMany({
+    return await (db as any).connectionHistory.findMany({
       where: {
         OR: [
           { sparkId1, sparkId2 },
@@ -90,7 +97,7 @@ export class ConnectionHistoryService {
   ): Promise<ConnectionHistoryEntry[]> {
     const { limit = 100, offset = 0 } = options
 
-    return await db.connectionHistory.findMany({
+    return await (db as any).connectionHistory.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -107,7 +114,7 @@ export class ConnectionHistoryService {
   ): Promise<ConnectionHistoryEntry[]> {
     const { limit = 100, offset = 0 } = options
 
-    return await db.connectionHistory.findMany({
+    return await (db as any).connectionHistory.findMany({
       where: {
         OR: [
           { sparkId1: { in: sparkIds } },
@@ -126,7 +133,7 @@ export class ConnectionHistoryService {
   async rollbackToHistoryEntry(historyId: string, userId: string, username: string): Promise<RollbackResult> {
     try {
       // Get the history entry
-      const historyEntry = await db.connectionHistory.findUnique({
+      const historyEntry = await (db as any).connectionHistory.findUnique({
         where: { id: historyId }
       })
 
@@ -172,16 +179,16 @@ export class ConnectionHistoryService {
               createdAt: currentConnection.createdAt
             },
             afterState: null,
-            metadata: { 
-              rolledBackFromHistory: historyId, 
-              originalChangeType: changeType 
+            metadata: {
+              rolledBackFromHistory: historyId,
+              originalChangeType: changeType
             },
             reason: `Rolled back creation from history entry ${historyId}`
           })
 
-          result = { 
-            success: true, 
-            deletedConnectionId: currentConnection.id 
+          result = {
+            success: true,
+            deletedConnectionId: currentConnection.id
           }
         } else {
           result = { success: false, error: "Connection no longer exists" }
@@ -216,15 +223,15 @@ export class ConnectionHistoryService {
               metadata: restoredConnection.metadata,
               createdAt: restoredConnection.createdAt
             },
-            metadata: { 
-              rolledBackFromHistory: historyId, 
-              originalChangeType: changeType 
+            metadata: {
+              rolledBackFromHistory: historyId,
+              originalChangeType: changeType
             },
             reason: `Rolled back deletion from history entry ${historyId}`
           })
 
-          result = { 
-            success: true, 
+          result = {
+            success: true,
             restoredConnection: {
               id: restoredConnection.id,
               sparkId1: restoredConnection.sparkId1,
@@ -273,15 +280,15 @@ export class ConnectionHistoryService {
               metadata: updatedConnection.metadata,
               createdAt: updatedConnection.createdAt
             },
-            metadata: { 
-              rolledBackFromHistory: historyId, 
-              originalChangeType: changeType 
+            metadata: {
+              rolledBackFromHistory: historyId,
+              originalChangeType: changeType
             },
             reason: `Rolled back modification from history entry ${historyId}`
           })
 
-          result = { 
-            success: true, 
+          result = {
+            success: true,
             restoredConnection: {
               id: updatedConnection.id,
               sparkId1: updatedConnection.sparkId1,
@@ -302,9 +309,9 @@ export class ConnectionHistoryService {
 
     } catch (error) {
       console.error("Error during rollback:", error)
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Unknown error during rollback" 
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error during rollback"
       }
     }
   }
@@ -322,11 +329,11 @@ export class ConnectionHistoryService {
     const where = userId ? { userId } : {}
 
     const [totalChanges, createdCount, modifiedCount, deletedCount, recentActivity] = await Promise.all([
-      db.connectionHistory.count({ where }),
-      db.connectionHistory.count({ where: { ...where, changeType: ConnectionChangeType.CREATED } }),
-      db.connectionHistory.count({ where: { ...where, changeType: ConnectionChangeType.MODIFIED } }),
-      db.connectionHistory.count({ where: { ...where, changeType: ConnectionChangeType.DELETED } }),
-      db.connectionHistory.findMany({
+      (db as any).connectionHistory.count({ where }),
+      (db as any).connectionHistory.count({ where: { ...where, changeType: ConnectionChangeType.CREATED } }),
+      (db as any).connectionHistory.count({ where: { ...where, changeType: ConnectionChangeType.MODIFIED } }),
+      (db as any).connectionHistory.count({ where: { ...where, changeType: ConnectionChangeType.DELETED } }),
+      (db as any).connectionHistory.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         take: 10
@@ -349,7 +356,7 @@ export class ConnectionHistoryService {
     const cutoffDate = new Date()
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays)
 
-    const result = await db.connectionHistory.deleteMany({
+    const result = await (db as any).connectionHistory.deleteMany({
       where: {
         createdAt: {
           lt: cutoffDate

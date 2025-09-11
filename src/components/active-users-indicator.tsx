@@ -15,8 +15,8 @@ interface ActiveUsersIndicatorProps {
   maxVisible?: number;
 }
 
-export const ActiveUsersIndicator = memo(({ 
-  users, 
+export const ActiveUsersIndicator = memo(({
+  users,
   className = "",
   showUsernames = false,
   maxVisible = 5
@@ -31,7 +31,7 @@ export const ActiveUsersIndicator = memo(({
   return (
     <TooltipProvider>
       <div className={`flex items-center gap-2 ${className}`}>
-        <motion.div 
+        <motion.div
           className="flex items-center gap-1"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -50,40 +50,37 @@ export const ActiveUsersIndicator = memo(({
                 <TooltipTrigger asChild>
                   <motion.div
                     initial={{ opacity: 0, scale: 0.5, x: -20 }}
-                    animate={{ 
-                      opacity: 1, 
-                      scale: 1, 
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
                       x: 0,
                       transition: { delay: index * 0.1 }
                     }}
-                    exit={{ 
-                      opacity: 0, 
-                      scale: 0.5, 
-                      x: -20 
+                    exit={{
+                      opacity: 0,
+                      scale: 0.5,
+                      x: -20
                     }}
                     className="relative"
                   >
-                    <Avatar 
+                    <Avatar
                       className="w-8 h-8 border-2 border-background ring-2 ring-offset-2"
-                      style={{ 
-                        ringColor: user.color,
-                        borderColor: user.color 
-                      }}
+                      style={{ '--tw-ring-color': user.color } as React.CSSProperties}
                     >
                       <AvatarImage src={user.avatarUrl} />
-                      <AvatarFallback 
+                      <AvatarFallback
                         className="text-xs font-medium"
-                        style={{ 
+                        style={{
                           backgroundColor: user.color + '20',
-                          color: user.color 
+                          color: user.color
                         }}
                       >
                         {user.username[0]?.toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     {/* Online indicator */}
-                    <div 
+                    <div
                       className="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-background"
                       style={{ backgroundColor: user.color }}
                     />
@@ -91,7 +88,7 @@ export const ActiveUsersIndicator = memo(({
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="w-2 h-2 rounded-full"
                       style={{ backgroundColor: user.color }}
                     />
@@ -104,7 +101,7 @@ export const ActiveUsersIndicator = memo(({
               </Tooltip>
             ))}
           </AnimatePresence>
-          
+
           {hiddenCount > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -126,11 +123,11 @@ export const ActiveUsersIndicator = memo(({
         {showUsernames && (
           <div className="flex flex-wrap gap-1">
             {visibleUsers.map((user) => (
-              <Badge 
-                key={user.userId} 
-                variant="outline" 
+              <Badge
+                key={user.userId}
+                variant="outline"
                 className="text-xs"
-                style={{ 
+                style={{
                   borderColor: user.color,
                   color: user.color
                 }}

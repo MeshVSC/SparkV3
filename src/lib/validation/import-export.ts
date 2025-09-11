@@ -85,14 +85,14 @@ export interface ValidationResult {
 export function validateImportData(data: unknown): ValidationResult {
   try {
     const result = ImportValidationSchema.safeParse(data)
-    
+
     if (!result.success) {
-      const errors: ValidationError[] = result.error.errors.map(err => ({
+      const errors: ValidationError[] = result.error.issues.map(err => ({
         path: err.path.map(String),
         message: err.message,
         code: err.code
       }))
-      
+
       return {
         success: false,
         errors
@@ -100,12 +100,12 @@ export function validateImportData(data: unknown): ValidationResult {
     }
 
     const warnings: string[] = []
-    
+
     // Check for potential issues
     if (result.data.sparks.length > 1000) {
       warnings.push(`Large import: ${result.data.sparks.length} sparks. This may take a while.`)
     }
-    
+
     const totalTodos = result.data.sparks.reduce((sum, spark) => sum + (spark.todos?.length || 0), 0)
     if (totalTodos > MAX_TODOS_COUNT) {
       return {

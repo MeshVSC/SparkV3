@@ -20,15 +20,31 @@ export class CollaborationNotificationIntegration {
   }
 
   /**
+   * Type guard: check if the collaboration service supports EventEmitter-style `on`
+   */
+  private hasOn(obj: any): obj is { on: (event: string, listener: (...args: any[]) => void) => void } {
+    return obj && typeof (obj as any).on === 'function';
+  }
+
+  /**
    * Set up event listeners for collaboration events
    */
   private setupEventListeners(): void {
+    const svc: any = this.collaborationService as any;
+
+    if (!this.hasOn(svc)) {
+      console.warn('CollaborativeEditingService does not implement on(); skipping event subscriptions');
+      // Still start periodic cleanup to avoid leaking sessions
+      this.startCleanup();
+      return;
+    }
+
     // Listen for collaboration events from the service
-    this.collaborationService.on('participant_joined', this.handleParticipantJoined.bind(this));
-    this.collaborationService.on('participant_left', this.handleParticipantLeft.bind(this));
-    this.collaborationService.on('operation_applied', this.handleOperationApplied.bind(this));
-    this.collaborationService.on('conflict_resolved', this.handleConflictResolved.bind(this));
-    this.collaborationService.on('document_updated', this.handleDocumentUpdated.bind(this));
+    svc.on('participant_joined', this.handleParticipantJoined.bind(this));
+    svc.on('participant_left', this.handleParticipantLeft.bind(this));
+    svc.on('operation_applied', this.handleOperationApplied.bind(this));
+    svc.on('conflict_resolved', this.handleConflictResolved.bind(this));
+    svc.on('document_updated', this.handleDocumentUpdated.bind(this));
 
     // Set up periodic cleanup
     this.startCleanup();
@@ -56,7 +72,7 @@ export class CollaborationNotificationIntegration {
 
     // Notify other participants about new user joining
     const otherParticipants = sessionParticipants.filter(p => p.userId !== participant.userId);
-    
+
     for (const otherParticipant of otherParticipants) {
       // Send in-app notification
       await this.notificationService.emitEvent('collaboration_action', otherParticipant.userId, {
@@ -181,7 +197,7 @@ export class CollaborationNotificationIntegration {
   private async handleConflictResolved(data: {
     sparkId: string;
     conflictingOperations: Operation[];
-    resolution: any;
+    resolution: { strategy: string };
     sessionParticipants: ParticipantInfo[];
   }): Promise<void> {
     const { sparkId, conflictingOperations, sessionParticipants } = data;
@@ -203,7 +219,7 @@ export class CollaborationNotificationIntegration {
           sparkId,
           sparkTitle: sparkInfo.title,
           conflictCount: conflictingOperations.length,
-          resolutionType: resolution.strategy
+          resolutionType: data.resolution.strategy
         }
       });
 
@@ -230,7 +246,7 @@ export class CollaborationNotificationIntegration {
   }): Promise<void> {
     // This could be used for periodic sync notifications
     // or milestone notifications (e.g., version 100, etc.)
-    
+
     if (data.version % 100 === 0) {
       const sparkInfo = await this.getSparkInfo(data.sparkId);
       if (!sparkInfo) return;
@@ -259,15 +275,15 @@ export class CollaborationNotificationIntegration {
   private getOperationDescription(operation: Operation): string | null {
     switch (operation.type) {
       case OperationType.INSERT:
-        return operation.text && operation.text.length > 20 
-          ? 'made a significant addition' 
+        return operation.text && operation.text.length > 20
+          ? 'made a significant addition'
           : 'added content';
-      
+
       case OperationType.DELETE:
-        return operation.length && operation.length > 20 
-          ? 'made a significant deletion' 
+        return operation.length && operation.length > 20
+          ? 'made a significant deletion'
           : 'deleted content';
-      
+
       case OperationType.PROPERTY_UPDATE:
         switch (operation.property) {
           case 'title':
@@ -279,7 +295,7 @@ export class CollaborationNotificationIntegration {
           default:
             return 'made an update';
         }
-      
+
       default:
         return null;
     }
@@ -292,13 +308,13 @@ export class CollaborationNotificationIntegration {
     switch (operation.type) {
       case OperationType.INSERT:
         return operation.text ? operation.text.length > 10 : false;
-      
+
       case OperationType.DELETE:
         return operation.length ? operation.length > 10 : false;
-      
+
       case OperationType.PROPERTY_UPDATE:
         return ['title', 'description', 'status'].includes(operation.property || '');
-      
+
       default:
         return false;
     }
@@ -308,8 +324,8 @@ export class CollaborationNotificationIntegration {
    * Track user activity for analytics and presence
    */
   private async trackUserActivity(
-    userId: string, 
-    sparkId: string, 
+    userId: string,
+    sparkId: string,
     activity: string
   ): Promise<void> {
     try {
@@ -344,7 +360,7 @@ export class CollaborationNotificationIntegration {
 
       // Get activity since user was last online
       // This would typically query recent operations from the database
-      
+
       await this.notificationService.createNotification({
         userId,
         type: NotificationType.SPARK_UPDATE,

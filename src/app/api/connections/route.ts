@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { connectionHistoryService } from "@/lib/connection-history-service"
-import { ConnectionType, ConnectionChangeType } from "@prisma/client"
+import { ConnectionType } from "@prisma/client"
+import { ConnectionChangeType } from "@/lib/connection-history-service"
 import { z } from "zod"
 
 const createConnectionSchema = z.object({
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error creating connection:", error)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid request data", details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: "Invalid request data", details: error.issues }, { status: 400 })
     }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to create connection" },

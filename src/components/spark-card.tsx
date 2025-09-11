@@ -84,9 +84,9 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
   }
 
   // Get border color for presence indication
-  const getPresenceBorderColor = () => {
-    if (users.length === 0) return ''
-    
+  const getPresenceBorderColor = (): React.CSSProperties => {
+    if (users.length === 0) return {}
+
     // If multiple users, show gradient border
     if (users.length > 1) {
       const colors = users.slice(0, 3).map(u => u.color).join(', ')
@@ -95,7 +95,7 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
         padding: '2px'
       }
     }
-    
+
     // Single user, show solid border
     return {
       borderColor: users[0].color,
@@ -115,7 +115,7 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
 
   return (
     <>
-      <div 
+      <div
         style={users.length > 1 ? getPresenceBorderColor() : {}}
         className={users.length > 1 ? 'rounded-lg' : ''}
       >
@@ -124,13 +124,13 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
             kanban-card w-64 shadow-lg transition-all duration-200 cursor-pointer touch-manipulation touch-feedback
             ${isSelected ? 'ring-2 ring-primary shadow-xl' : 'hover:shadow-xl active:shadow-2xl active:scale-[1.02]'}
             ${isDragging ? 'touch-drag-active opacity-90' : 'drag-transition'}
-            ${users.length > 0 && users.length === 1 ? 'border-2' : 'border-l-4'} 
+            ${users.length > 0 && users.length === 1 ? 'border-2' : 'border-l-4'}
             ${users.length === 0 ? 'touch:w-full touch:max-w-none touch:shadow-md touch-card' : ''}
           `}
-          style={{ 
-            ...(style || {}), 
+          style={{
+            ...(style || {}),
             ...(users.length === 1 ? getPresenceBorderColor() : { borderLeftColor: spark.color }),
-            touchAction: 'manipulation' 
+            touchAction: 'manipulation'
           }}
           onClick={onClick}
           onMouseEnter={() => setIsHovered(true)}
@@ -204,8 +204,8 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
 
             {/* Activity indicator - only show when users are present */}
             {users.length > 0 && (
-              <SparkActivityIndicator 
-                sparkId={spark.id} 
+              <SparkActivityIndicator
+                sparkId={spark.id}
                 users={users}
                 size="sm"
               />

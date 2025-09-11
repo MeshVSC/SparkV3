@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { BulkOperationsService } from '@/lib/services/bulk-operations'
 import { ExportOptionsSchema } from '@/lib/validation/import-export'
-import { 
+import {
   RequestValidationMiddleware,
   rateLimiter,
   getClientIdentifier,
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     // Rate limiting
     const clientId = getClientIdentifier(request)
     const rateLimitResult = rateLimiter.isLimited(clientId)
-    
+
     if (rateLimitResult.limited) {
       const response = NextResponse.json(
         RequestValidationMiddleware.createRateLimitResponse(rateLimitResult.resetTime),
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       const response = NextResponse.json(
         { error: 'Unauthorized' },
@@ -50,12 +50,12 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const validation = ExportOptionsSchema.safeParse(body)
-    
+
     if (!validation.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Invalid export options',
-          details: validation.error.errors.map(err => ({
+          details: validation.error.issues.map(err => ({
             field: err.path.join('.'),
             message: err.message
           }))
@@ -77,13 +77,13 @@ export async function POST(request: NextRequest) {
         select: { id: true }
       })
 
-      const invalidIds = options.sparkIds.filter(id => 
+      const invalidIds = options.sparkIds.filter(id =>
         !userSparks.some(spark => spark.id === id)
       )
 
       if (invalidIds.length > 0) {
         return NextResponse.json(
-          { 
+          {
             error: 'Invalid spark IDs',
             details: `The following spark IDs do not exist or do not belong to you: ${invalidIds.join(', ')}`
           },
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Export failed',
           details: result.errors?.[0]?.message || 'Unknown error',
           operationId
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     // Return data for synchronous exports
     const filename = `spark_export_${new Date().toISOString().split('T')[0]}.json`
-    
+
     const response = NextResponse.json({
       success: true,
       operationId,
@@ -150,20 +150,20 @@ export async function POST(request: NextRequest) {
         duration: result.duration
       }
     })
-    
+
     return addSecurityHeaders(response)
 
   } catch (error) {
     console.error('Export API error:', error)
-    
+
     const response = NextResponse.json(
-      { 
-        error: 'Export failed', 
+      {
+        error: 'Export failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
-    
+
     return addSecurityHeaders(response)
   }
 }
@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
     // Rate limiting
     const clientId = getClientIdentifier(request)
     const rateLimitResult = rateLimiter.isLimited(clientId)
-    
+
     if (rateLimitResult.limited) {
       const response = NextResponse.json(
         RequestValidationMiddleware.createRateLimitResponse(rateLimitResult.resetTime),
@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
     }
 
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       const response = NextResponse.json(
         { error: 'Unauthorized' },
@@ -216,7 +216,7 @@ export async function GET(request: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Export failed',
           details: result.errors?.[0]?.message || 'Unknown error'
         },
@@ -233,7 +233,7 @@ export async function GET(request: NextRequest) {
       // Convert to CSV format
       const { ExportService } = await import('@/utils/services/ExportService.js')
       const csvData = await ExportService.exportSparksToCSV(result.data?.sparks || [])
-      
+
       filename = `spark_export_${timestamp}.csv`
       contentType = 'text/csv'
       responseBody = csvData
@@ -256,15 +256,15 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Export API error:', error)
-    
+
     const response = NextResponse.json(
-      { 
-        error: 'Export failed', 
+      {
+        error: 'Export failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
-    
+
     return addSecurityHeaders(response)
   }
 }

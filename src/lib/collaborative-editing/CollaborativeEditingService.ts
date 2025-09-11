@@ -1,13 +1,14 @@
 import { Server, Socket } from 'socket.io';
-import { 
-  Operation, 
-  OperationType, 
-  VectorClock, 
-  OperationQueue, 
-  DocumentState, 
-  CollaborativeSession, 
-  ParticipantInfo, 
-  SyncMessage, 
+import { EventEmitter } from 'events';
+import {
+  Operation,
+  OperationType,
+  VectorClock,
+  OperationQueue,
+  DocumentState,
+  CollaborativeSession,
+  ParticipantInfo,
+  SyncMessage,
   SyncMessageType,
   ConflictResolution,
   ConflictStrategy
@@ -21,7 +22,7 @@ import { v4 as uuidv4 } from 'uuid';
  * CollaborativeEditingService handles real-time synchronization of spark content
  * modifications across multiple users using operational transformation algorithms
  */
-export class CollaborativeEditingService {
+export class CollaborativeEditingService extends EventEmitter {
   private io: Server;
   private sessions: Map<string, CollaborativeSession> = new Map();
   private clientQueues: Map<string, OperationQueue> = new Map();
@@ -29,6 +30,7 @@ export class CollaborativeEditingService {
   private clientSessions: Map<string, string> = new Map(); // clientId -> sparkId
 
   constructor(io: Server) {
+    super();
     this.io = io;
     this.setupSocketHandlers();
     this.startCleanupInterval();
@@ -42,10 +44,10 @@ export class CollaborativeEditingService {
       console.log('Client connected to collaborative editing:', socket.id);
 
       // Join collaborative session
-      socket.on('join_collaboration', async (data: { 
-        sparkId: string; 
-        userId: string; 
-        username: string 
+      socket.on('join_collaboration', async (data: {
+        sparkId: string;
+        userId: string;
+        username: string
       }) => {
         await this.handleJoinSession(socket, data);
       });
@@ -80,10 +82,10 @@ export class CollaborativeEditingService {
   /**
    * Handle client joining a collaborative session
    */
-  private async handleJoinSession(socket: Socket, data: { 
-    sparkId: string; 
-    userId: string; 
-    username: string 
+  private async handleJoinSession(socket: Socket, data: {
+    sparkId: string;
+    userId: string;
+    username: string
   }): Promise<void> {
     const { sparkId, userId, username } = data;
     const clientId = socket.id;
@@ -91,7 +93,7 @@ export class CollaborativeEditingService {
     try {
       // Get or create document state
       const documentState = await this.getOrCreateDocumentState(sparkId);
-      
+
       // Get or create collaborative session
       let session = this.sessions.get(sparkId);
       if (!session) {
@@ -134,6 +136,13 @@ export class CollaborativeEditingService {
       // Notify other participants
       socket.to(`spark_${sparkId}`).emit('participant_joined', participantInfo);
 
+      // Emit participant_joined event
+      this.emit('participant_joined', {
+        sparkId,
+        participant: participantInfo,
+        sessionParticipants: Array.from(session.participants.values())
+      });
+
       console.log(`Client ${clientId} joined collaboration for spark ${sparkId}`);
     } catch (error) {
       console.error('Error joining collaborative session:', error);
@@ -152,7 +161,7 @@ export class CollaborativeEditingService {
     if (session && session.participants.has(clientId)) {
       const participant = session.participants.get(clientId);
       session.participants.delete(clientId);
-      
+
       // Clean up client data
       this.clientQueues.delete(clientId);
       this.clientSessions.delete(clientId);
@@ -162,6 +171,13 @@ export class CollaborativeEditingService {
 
       // Notify other participants
       socket.to(`spark_${sparkId}`).emit('participant_left', participant);
+
+      // Emit participant_left event
+      this.emit('participant_left', {
+        sparkId,
+        participant,
+        sessionParticipants: session ? Array.from(session.participants.values()) : []
+      });
 
       // Clean up session if no participants
       if (session.participants.size === 0) {
@@ -185,9 +201,9 @@ export class CollaborativeEditingService {
     try {
       // Validate operation
       if (!this.validateOperation(operation)) {
-        socket.emit('operation_error', { 
-          operationId: operation.id, 
-          message: 'Invalid operation' 
+        socket.emit('operation_error', {
+          operationId: operation.id,
+          message: 'Invalid operation'
         });
         return;
       }
@@ -195,11 +211,11 @@ export class CollaborativeEditingService {
       // Get session and document state
       const session = this.sessions.get(sparkId);
       const documentState = this.documentStates.get(sparkId);
-      
+
       if (!session || !documentState) {
-        socket.emit('operation_error', { 
-          operationId: operation.id, 
-          message: 'Session not found' 
+        socket.emit('operation_error', {
+          operationId: operation.id,
+          message: 'Session not found'
         });
         return;
       }
@@ -231,19 +247,33 @@ export class CollaborativeEditingService {
       });
 
       // Send acknowledgment to originating client
-      socket.emit('operation_ack', { 
-        operationId: operation.id, 
-        transformedOperation 
+      socket.emit('operation_ack', {
+        operationId: operation.id,
+        transformedOperation
       });
 
       // Persist operation to database
       await this.persistOperation(transformedOperation);
 
+      // Emit operation_applied event
+      this.emit('operation_applied', {
+        operation: transformedOperation,
+        sessionParticipants: Array.from(session.participants.values())
+      });
+
+      // Emit document_updated event
+      this.emit('document_updated', {
+        sparkId,
+        version: documentState.version,
+        lastOperation: transformedOperation,
+        sessionParticipants: Array.from(session.participants.values())
+      });
+
     } catch (error) {
       console.error('Error handling operation:', error);
-      socket.emit('operation_error', { 
-        operationId: operation.id, 
-        message: 'Failed to process operation' 
+      socket.emit('operation_error', {
+        operationId: operation.id,
+        message: 'Failed to process operation'
       });
     }
   }
@@ -252,11 +282,11 @@ export class CollaborativeEditingService {
    * Transform operation against concurrent operations using OT
    */
   private async transformOperation(
-    operation: Operation, 
+    operation: Operation,
     session: CollaborativeSession
   ): Promise<Operation> {
     // Get operations that happened concurrently
-    const concurrentOps = session.operationHistory.filter(op => 
+    const concurrentOps = session.operationHistory.filter(op =>
       op.clientId !== operation.clientId &&
       op.timestamp >= operation.timestamp - 5000 && // Within 5 seconds
       VectorClockManager.areConcurrent(op.vectorClock, operation.vectorClock)
@@ -281,9 +311,9 @@ export class CollaborativeEditingService {
       case OperationType.INSERT:
         if (operation.text) {
           const content = documentState.content || '';
-          const newContent = 
-            content.slice(0, operation.position) + 
-            operation.text + 
+          const newContent =
+            content.slice(0, operation.position) +
+            operation.text +
             content.slice(operation.position);
           documentState.content = newContent;
         }
@@ -292,8 +322,8 @@ export class CollaborativeEditingService {
       case OperationType.DELETE:
         if (operation.length) {
           const content = documentState.content || '';
-          const newContent = 
-            content.slice(0, operation.position) + 
+          const newContent =
+            content.slice(0, operation.position) +
             content.slice(operation.position + operation.length);
           documentState.content = newContent;
         }
@@ -405,7 +435,7 @@ export class CollaborativeEditingService {
    * Create collaborative session
    */
   private async createCollaborativeSession(
-    sparkId: string, 
+    sparkId: string,
     documentState: DocumentState
   ): Promise<CollaborativeSession> {
     return {
@@ -452,7 +482,7 @@ export class CollaborativeEditingService {
         if (documentState) {
           await prisma.spark.update({
             where: { id: operation.sparkId },
-            data: { 
+            data: {
               content: documentState.content,
               updatedAt: new Date()
             }
@@ -469,7 +499,7 @@ export class CollaborativeEditingService {
    */
   private async updateSparkProperty(sparkId: string, property: string, value: any): Promise<void> {
     const updateData: any = { updatedAt: new Date() };
-    
+
     if (property === 'title' || property === 'description' || property === 'status') {
       updateData[property] = value;
     }
@@ -494,7 +524,7 @@ export class CollaborativeEditingService {
         // Check if operations conflict
         if (this.operationsConflict(op1, op2)) {
           const [transformed1, transformed2] = OperationalTransform.transform(op1, op2);
-          
+
           resolutions.push({
             originalOperation: op1,
             transformedOperations: [transformed1],
@@ -520,18 +550,18 @@ export class CollaborativeEditingService {
    */
   private operationsConflict(op1: Operation, op2: Operation): boolean {
     if (op1.sparkId !== op2.sparkId) return false;
-    
+
     // Text operations on overlapping ranges conflict
     if ((op1.type === OperationType.INSERT || op1.type === OperationType.DELETE) &&
         (op2.type === OperationType.INSERT || op2.type === OperationType.DELETE)) {
       const op1End = op1.position + (op1.length || op1.text?.length || 0);
       const op2End = op2.position + (op2.length || op2.text?.length || 0);
-      
+
       return !(op1End <= op2.position || op2End <= op1.position);
     }
 
     // Property updates on the same property conflict
-    if (op1.type === OperationType.PROPERTY_UPDATE && 
+    if (op1.type === OperationType.PROPERTY_UPDATE &&
         op2.type === OperationType.PROPERTY_UPDATE) {
       return op1.property === op2.property;
     }

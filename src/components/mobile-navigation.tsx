@@ -6,10 +6,10 @@ import { useSpark } from "@/contexts/spark-context"
 import { BottomTabNavigation, TabItem } from "@/components/ui/bottom-tab-navigation"
 import { FloatingActionButton } from "@/components/ui/floating-action-button"
 import { CreateSparkDialog } from "@/components/create-spark-dialog"
-import { 
-  Lightbulb, 
-  Kanban, 
-  Clock, 
+import {
+  Lightbulb,
+  Kanban,
+  Clock,
   Target,
   Trophy,
   Settings,
@@ -24,7 +24,7 @@ export function MobileNavigation() {
   const [activeTab, setActiveTab] = useState("sparks")
 
   // Get badge counts for tabs
-  const completedTodos = state.sparks.reduce((sum, spark) => 
+  const completedTodos = state.sparks.reduce((sum, spark) =>
     sum + (spark.todos?.filter(todo => todo.completed).length || 0), 0
   )
 
@@ -45,7 +45,7 @@ export function MobileNavigation() {
     },
     {
       id: "timeline",
-      label: "Timeline", 
+      label: "Timeline",
       icon: Clock,
       onClick: () => actions.setViewMode("timeline")
     },
@@ -61,12 +61,11 @@ export function MobileNavigation() {
       icon: Trophy,
       badge: completedTodos,
       onClick: () => {
-        // Navigate to stats/achievements view
+        const target = "/app#stats";
         if (pathname === "/app") {
-          // Show stats in sidebar if on main app page
-          actions.setViewMode("stats")
+          router.push(target);
         } else {
-          router.push("/app")
+          router.push(target);
         }
       }
     }
@@ -74,7 +73,7 @@ export function MobileNavigation() {
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId)
-    
+
     // Ensure we're on the main app page for view mode changes
     if (pathname !== "/app") {
       router.push("/app")

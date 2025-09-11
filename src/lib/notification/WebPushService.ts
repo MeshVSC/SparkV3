@@ -1,4 +1,6 @@
-import { NotificationData, NotificationType } from '@/types/notification';
+import { NotificationData, NotificationType, NotificationChannel } from '@/types/notification';
+
+type MinimalNotification = Omit<NotificationData, 'id' | 'createdAt' | 'updatedAt'>;
 
 export interface PushSubscription {
   id: string;
@@ -44,7 +46,7 @@ export class WebPushService {
    */
   checkBrowserSupport(): boolean {
     if (typeof window === 'undefined') return false;
-    
+
     return !!(
       'serviceWorker' in navigator &&
       'PushManager' in window &&
@@ -79,7 +81,7 @@ export class WebPushService {
     }
 
     const permission = await Notification.requestPermission();
-    
+
     if (permission !== 'granted') {
       throw new Error('Push notification permission was denied');
     }
@@ -131,7 +133,7 @@ export class WebPushService {
       // Create new subscription
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(this.config.vapidPublicKey)
+        applicationServerKey: this.urlBase64ToUint8Array(this.config.vapidPublicKey) as unknown as BufferSource
       });
 
       const pushSubscription: PushSubscription = {
@@ -186,11 +188,11 @@ export class WebPushService {
    */
   async sendPushNotification(
     userId: string,
-    notification: Omit<NotificationData, 'id' | 'createdAt' | 'updatedAt'>
+    notification: MinimalNotification
   ): Promise<boolean> {
     try {
       const subscriptions = await this.getUserSubscriptions(userId);
-      
+
       if (subscriptions.length === 0) {
         console.warn(`No push subscriptions found for user ${userId}`);
         return false;
@@ -217,12 +219,12 @@ export class WebPushService {
 
       // Send to all user subscriptions
       const results = await Promise.allSettled(
-        subscriptions.map(subscription => 
+        subscriptions.map(subscription =>
           this.sendToSubscription(subscription, pushPayload)
         )
       );
 
-      const successCount = results.filter(result => 
+      const successCount = results.filter(result =>
         result.status === 'fulfilled' && result.value
       ).length;
 
@@ -257,7 +259,7 @@ export class WebPushService {
       title: 'Spark Updated',
       message: messages[updateType],
       priority: 2,
-      channels: ['push'],
+      channels: [NotificationChannel.PUSH],
       data: { sparkId, sparkTitle, updateType }
     });
   }
@@ -295,7 +297,7 @@ export class WebPushService {
       title: titles[event.type],
       message: messages[event.type],
       priority: event.type === 'operation_conflict' ? 3 : 2,
-      channels: ['push'],
+      channels: [NotificationChannel.PUSH],
       data: event
     });
   }
@@ -305,7 +307,7 @@ export class WebPushService {
    */
   private shouldSendNotification(userId: string): boolean {
     if (typeof document === 'undefined') return true;
-    
+
     // Don't send push notifications if the app is in focus
     return document.hidden || !document.hasFocus();
   }
@@ -313,9 +315,9 @@ export class WebPushService {
   /**
    * Get notification URL for click handling
    */
-  private getNotificationUrl(notification: NotificationData): string {
+  private getNotificationUrl(notification: MinimalNotification): string {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-    
+
     switch (notification.type) {
       case NotificationType.SPARK_UPDATE:
       case NotificationType.COLLABORATION_ACTION:
@@ -330,7 +332,7 @@ export class WebPushService {
   /**
    * Get notification actions based on type
    */
-  private getNotificationActions(notification: NotificationData): any[] {
+  private getNotificationActions(notification: MinimalNotification): any[] {
     const actions = [{
       action: 'view',
       title: 'View',
@@ -366,7 +368,7 @@ export class WebPushService {
     try {
       // In production, this would use a proper web-push library
       // For now, we'll use the Web Push API directly
-      
+
       if (process.env.NODE_ENV === 'development') {
         console.log('📱 Mock Push Notification:', {
           endpoint: subscription.endpoint.substring(0, 50) + '...',
@@ -381,12 +383,12 @@ export class WebPushService {
       return true;
     } catch (error) {
       console.error('Failed to send to subscription:', error);
-      
+
       // Remove invalid subscriptions
       if (error instanceof Error && error.message.includes('410')) {
         await this.removeSubscription(subscription.id);
       }
-      
+
       return false;
     }
   }
@@ -396,11 +398,11 @@ export class WebPushService {
    */
   private async storeSubscription(subscription: PushSubscription): Promise<void> {
     const userSubscriptions = this.subscriptions.get(subscription.userId) || [];
-    
+
     // Remove existing subscriptions for this endpoint
     const filtered = userSubscriptions.filter(sub => sub.endpoint !== subscription.endpoint);
     filtered.push(subscription);
-    
+
     this.subscriptions.set(subscription.userId, filtered);
 
     // In production, persist to database
@@ -410,7 +412,7 @@ export class WebPushService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription)
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to store subscription on server');
       }

@@ -32,16 +32,10 @@ export class EmailServiceIntegration {
       // Check for Mailgun configuration first
       if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
         const config = {
-          provider: 'smtp' as const,
-          from: process.env.FROM_EMAIL || 'notifications@spark.app',
+          provider: 'mailgun' as const,
+          from: process.env.MAIL_FROM || 'notifications@spark.app',
           apiKey: process.env.MAILGUN_API_KEY,
-          host: 'smtp.mailgun.org',
-          port: 587,
-          secure: false,
-          auth: {
-            user: `postmaster@${process.env.MAILGUN_DOMAIN}`,
-            pass: process.env.MAILGUN_API_KEY
-          }
+          domain: process.env.MAILGUN_DOMAIN
         };
 
         await emailService.configure(config);
@@ -229,17 +223,28 @@ export class EmailServiceIntegration {
 
   // Health check method
   async getHealthStatus(): Promise<any> {
-    const emailHealth = await emailService.healthCheck();
-    const stats = emailService.getStats();
-    
-    return {
-      emailService: emailHealth,
-      stats,
-      integration: {
-        configured: true,
-        listenersActive: true
-      }
-    };
+    try {
+      const emailHealth = await emailService.healthCheck();
+      const stats = emailService.getStats();
+      
+      return {
+        emailService: emailHealth,
+        stats,
+        integration: {
+          configured: true,
+          listenersActive: true
+        }
+      };
+    } catch (error) {
+      return {
+        emailService: { healthy: false, details: { error: 'Email service not configured' } },
+        stats: emailService.getStats(),
+        integration: {
+          configured: false,
+          listenersActive: true
+        }
+      };
+    }
   }
 
   // Method to test email functionality

@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { BulkOperationsService } from '@/lib/services/bulk-operations'
-import { 
-  validateImportData, 
-  validateFileFormat, 
+import {
+  validateImportData,
+  validateFileFormat,
   ImportOptionsSchema,
-  MAX_FILE_SIZE 
+  MAX_FILE_SIZE
 } from '@/lib/validation/import-export'
-import { 
+import {
   RequestValidationMiddleware,
   rateLimiter,
   getClientIdentifier,
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Rate limiting
     const clientId = getClientIdentifier(request)
     const rateLimitResult = rateLimiter.isLimited(clientId)
-    
+
     if (rateLimitResult.limited) {
       const response = NextResponse.json(
         RequestValidationMiddleware.createRateLimitResponse(rateLimitResult.resetTime),
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       const response = NextResponse.json(
         { error: 'Unauthorized' },
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       const fileValidation = await RequestValidationMiddleware.validateFileUpload(file)
       if (!fileValidation.success) {
         const response = NextResponse.json(
-          { 
+          {
             error: 'Invalid file',
             details: fileValidation.errors?.[0]?.message || 'File validation failed',
             validationErrors: fileValidation.errors
@@ -96,14 +96,14 @@ export async function POST(request: NextRequest) {
 
       // Read file content
       const fileContent = await file.text()
-      
+
       // Parse based on file extension
       if (filename.toLowerCase().endsWith('.json')) {
         try {
           importData = JSON.parse(fileContent)
         } catch (error) {
           return NextResponse.json(
-            { 
+            {
               error: 'Invalid JSON file',
               details: 'The uploaded file contains invalid JSON syntax'
             },
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
 
           if (parsed.errors.length > 0) {
             return NextResponse.json(
-              { 
+              {
                 error: 'CSV parsing failed',
                 details: parsed.errors.map(err => err.message).join(', ')
               },
@@ -135,8 +135,8 @@ export async function POST(request: NextRequest) {
               title: row.title || 'Untitled',
               description: row.description || null,
               content: row.content || null,
-              status: ['SEEDLING', 'SAPLING', 'TREE', 'FOREST'].includes(row.status?.toUpperCase()) 
-                ? row.status.toUpperCase() 
+              status: ['SEEDLING', 'SAPLING', 'TREE', 'FOREST'].includes(row.status?.toUpperCase())
+                ? row.status.toUpperCase()
                 : 'SEEDLING',
               level: parseInt(row.level) || 1,
               xp: parseInt(row.xp) || 0,
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
           }
         } catch (error) {
           return NextResponse.json(
-            { 
+            {
               error: 'CSV processing failed',
               details: error instanceof Error ? error.message : 'Unknown CSV error'
             },
@@ -176,9 +176,9 @@ export async function POST(request: NextRequest) {
     const optionsValidation = ImportOptionsSchema.safeParse(options)
     if (!optionsValidation.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Invalid import options',
-          details: optionsValidation.error.errors.map(err => ({
+          details: optionsValidation.error.issues.map(err => ({
             field: err.path.join('.'),
             message: err.message
           }))
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
     const dataValidation = validateImportData(importData)
     if (!dataValidation.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Invalid import data structure',
           details: 'The provided data does not match the expected format',
           validationErrors: dataValidation.errors,
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
     const operationId = uuidv4()
 
     // Check if this is a large import that should be processed asynchronously
-    const totalItems = validatedData.sparks.length + 
+    const totalItems = validatedData.sparks.length +
       validatedData.sparks.reduce((sum, spark) => sum + (spark.todos?.length || 0), 0) +
       (validatedData.connections?.length || 0)
 
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Import failed',
           details: result.errors?.[0]?.message || 'Unknown error',
           operationId,
@@ -271,16 +271,16 @@ export async function POST(request: NextRequest) {
       duration: result.duration,
       warnings: result.warnings || dataValidation.warnings
     })
-    
+
     return addSecurityHeaders(response)
 
   } catch (error) {
     console.error('Import API error:', error)
-    
+
     // Check for specific error types
     if (error instanceof Error && error.message.includes('File too large')) {
       const response = NextResponse.json(
-        { 
+        {
           error: 'File too large',
           details: `Maximum file size is ${MAX_FILE_SIZE / 1024 / 1024}MB`
         },
@@ -290,13 +290,13 @@ export async function POST(request: NextRequest) {
     }
 
     const response = NextResponse.json(
-      { 
-        error: 'Import failed', 
+      {
+        error: 'Import failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
-    
+
     return addSecurityHeaders(response)
   }
 }
@@ -307,7 +307,7 @@ export async function GET(request: NextRequest) {
     // Rate limiting
     const clientId = getClientIdentifier(request)
     const rateLimitResult = rateLimiter.isLimited(clientId)
-    
+
     if (rateLimitResult.limited) {
       const response = NextResponse.json(
         RequestValidationMiddleware.createRateLimitResponse(rateLimitResult.resetTime),
@@ -317,7 +317,7 @@ export async function GET(request: NextRequest) {
     }
 
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       const response = NextResponse.json(
         { error: 'Unauthorized' },
@@ -343,20 +343,20 @@ export async function GET(request: NextRequest) {
       active: isActive,
       message: isActive ? 'Operation is still running' : 'Operation completed or not found'
     })
-    
+
     return addSecurityHeaders(response)
 
   } catch (error) {
     console.error('Import status API error:', error)
-    
+
     const response = NextResponse.json(
-      { 
-        error: 'Status check failed', 
+      {
+        error: 'Status check failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
-    
+
     return addSecurityHeaders(response)
   }
 }
@@ -365,7 +365,7 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       const response = NextResponse.json(
         { error: 'Unauthorized' },
@@ -391,20 +391,20 @@ export async function DELETE(request: NextRequest) {
       operationId,
       message: cancelled ? 'Operation cancelled successfully' : 'Operation not found or already completed'
     })
-    
+
     return addSecurityHeaders(response)
 
   } catch (error) {
     console.error('Import cancel API error:', error)
-    
+
     const response = NextResponse.json(
-      { 
-        error: 'Cancel failed', 
+      {
+        error: 'Cancel failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )
-    
+
     return addSecurityHeaders(response)
   }
 }

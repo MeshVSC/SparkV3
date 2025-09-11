@@ -68,7 +68,11 @@ async function createCustomServer() {
     );
     
     // Initialize email service integration
-    await emailServiceIntegration.getHealthStatus();
+    try {
+      await emailServiceIntegration.getHealthStatus();
+    } catch (error) {
+      console.warn('Email service not configured, continuing without email notifications:', error);
+    }
 
     // Start the server
     server.listen(currentPort, hostname, () => {

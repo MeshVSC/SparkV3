@@ -32,21 +32,21 @@ interface NetworkGraphProps {
   className?: string
 }
 
-export function NetworkGraphComponent({ 
-  sparks, 
-  connections, 
+export function NetworkGraphComponent({
+  sparks,
+  connections,
   onNodeClick,
-  className = '' 
+  className = ''
 }: NetworkGraphProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [layout, setLayout] = useState<LayoutType>('force')
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
-  
+
   // Transform data for D3
   const { nodes, links } = React.useMemo(() => {
     const sparkMap = new Map(sparks.map(spark => [spark.id, spark]))
-    
+
     const nodes: NetworkNode[] = sparks.map(spark => ({
       id: spark.id,
       title: spark.title,
@@ -56,7 +56,7 @@ export function NetworkGraphComponent({
       xp: spark.xp,
       connections: connections.filter(c => c.sparkId1 === spark.id || c.sparkId2 === spark.id).length
     }))
-    
+
     const links: NetworkLink[] = connections
       .filter(conn => sparkMap.has(conn.sparkId1) && sparkMap.has(conn.sparkId2))
       .map(conn => ({
@@ -66,7 +66,7 @@ export function NetworkGraphComponent({
         type: conn.type,
         strength: conn.metadata?.strength || 1
       }))
-    
+
     return { nodes, links }
   }, [sparks, connections])
 
@@ -74,9 +74,9 @@ export function NetworkGraphComponent({
   const handleResize = useCallback(() => {
     if (containerRef.current) {
       const { clientWidth, clientHeight } = containerRef.current
-      setDimensions({ 
-        width: Math.max(clientWidth, 400), 
-        height: Math.max(clientHeight, 300) 
+      setDimensions({
+        width: Math.max(clientWidth, 400),
+        height: Math.max(clientHeight, 300)
       })
     }
   }, [])
@@ -98,16 +98,16 @@ export function NetworkGraphComponent({
     svg.selectAll('*').remove()
 
     const { width, height } = dimensions
-    
+
     // Create main group with zoom behavior
     const g = svg.append('g')
-    
+
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.1, 3])
       .on('zoom', (event) => {
         g.attr('transform', event.transform)
       })
-    
+
     svg.call(zoom)
 
     // Create node and link selections
@@ -171,7 +171,7 @@ export function NetworkGraphComponent({
         )
         .force('charge', d3.forceManyBody().strength(-200))
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(d => Math.max(8, 8 + d.level * 2) + 5))
+        .force('collision', d3.forceCollide<NetworkNode>().radius(d => Math.max(8, 8 + d.level * 2) + 5))
 
       simulation.on('tick', () => {
         linkSelection
@@ -247,20 +247,20 @@ export function NetworkGraphComponent({
         .id(d => d.id)
         .parentId(d => {
           // Find parent based on dependencies or highest connected node with higher level
-          const dependencies = links.filter(l => 
+          const dependencies = links.filter(l =>
             (l.target as NetworkNode).id === d.id && l.type === ConnectionType.DEPENDS_ON
           )
           if (dependencies.length > 0) {
             return (dependencies[0].source as NetworkNode).id
           }
-          
+
           const connectedHigherLevel = links
-            .filter(l => 
+            .filter(l =>
               ((l.source as NetworkNode).id === d.id && (l.target as NetworkNode).level > d.level) ||
               ((l.target as NetworkNode).id === d.id && (l.source as NetworkNode).level > d.level)
             )
             .map(l => {
-              const otherId = (l.source as NetworkNode).id === d.id ? 
+              const otherId = (l.source as NetworkNode).id === d.id ?
                 (l.target as NetworkNode).id : (l.source as NetworkNode).id
               return nodes.find(n => n.id === otherId)!
             })
@@ -288,11 +288,11 @@ export function NetworkGraphComponent({
         // Fallback to level-based layout if hierarchy fails
         const levels = Array.from(new Set(nodes.map(n => n.level))).sort((a, b) => a - b)
         const levelHeight = height / (levels.length + 1)
-        
+
         levels.forEach((level, levelIndex) => {
           const nodesAtLevel = nodes.filter(n => n.level === level)
           const levelWidth = width / (nodesAtLevel.length + 1)
-          
+
           nodesAtLevel.forEach((node, nodeIndex) => {
             node.x = (nodeIndex + 1) * levelWidth
             node.y = (levelIndex + 1) * levelHeight
@@ -363,8 +363,8 @@ export function NetworkGraphComponent({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div 
-          ref={containerRef} 
+        <div
+          ref={containerRef}
           className="w-full h-[600px] relative overflow-hidden"
         >
           <svg
@@ -373,7 +373,7 @@ export function NetworkGraphComponent({
             height={dimensions.height}
             className="w-full h-full"
           />
-          
+
           {nodes.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
@@ -383,7 +383,7 @@ export function NetworkGraphComponent({
             </div>
           )}
         </div>
-        
+
         {/* Legend */}
         <div className="p-4 border-t bg-muted/30">
           <div className="flex flex-wrap gap-4 text-xs">

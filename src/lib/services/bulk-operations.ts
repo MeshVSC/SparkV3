@@ -59,8 +59,8 @@ export class BulkOperationsService {
   ): Promise<BulkOperationResult> {
     const startTime = Date.now()
     const opId = operationId || uuidv4()
-    
-    this.activeOperations.set(opId, true)
+
+    this.activeOperations.set(opId, true as boolean)
 
     try {
       this.emitProgress(socketId || null, {
@@ -72,8 +72,8 @@ export class BulkOperationsService {
       })
 
       // Phase 1: Data validation and preprocessing
-      const validatedData = await this.validateAndPreprocessData(data, options, socketId, opId)
-      
+      const validatedData = await this.validateAndPreprocessData(data, options, opId, socketId)
+
       this.emitProgress(socketId || null, {
         operationId: opId,
         phase: 'processing',
@@ -83,8 +83,8 @@ export class BulkOperationsService {
       })
 
       // Phase 2: Import sparks
-      const importedSparks = await this.importSparks(userId, validatedData.sparks, options, socketId, opId)
-      
+      const importedSparks = await this.importSparks(userId, validatedData.sparks, options, opId, socketId)
+
       this.emitProgress(socketId || null, {
         operationId: opId,
         phase: 'processing',
@@ -94,8 +94,8 @@ export class BulkOperationsService {
       })
 
       // Phase 3: Import todos
-      const importedTodos = await this.importTodos(importedSparks, validatedData.sparks, options, socketId, opId)
-      
+      const importedTodos = await this.importTodos(importedSparks, validatedData.sparks, options, opId, socketId)
+
       this.emitProgress(socketId || null, {
         operationId: opId,
         phase: 'processing',
@@ -109,8 +109,8 @@ export class BulkOperationsService {
         importedSparks,
         validatedData.connections || [],
         options,
-        socketId,
-        opId
+        opId,
+        socketId
       )
 
       this.emitProgress(socketId || null, {
@@ -147,7 +147,7 @@ export class BulkOperationsService {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      
+
       this.emitProgress(socketId || null, {
         operationId: opId,
         phase: 'error',
@@ -179,8 +179,8 @@ export class BulkOperationsService {
   private async validateAndPreprocessData(
     data: ImportValidationData,
     options: ImportOptions,
-    socketId: string | null,
-    operationId: string
+    operationId: string,
+    socketId?: string
   ): Promise<ImportValidationData> {
     // Deep validation of spark IDs if preserveIds is true
     if (options.preserveIds) {
@@ -222,8 +222,8 @@ export class BulkOperationsService {
     userId: string,
     sparksData: ImportValidationData['sparks'],
     options: ImportOptions,
-    socketId: string | null,
-    operationId: string
+    operationId: string,
+    socketId?: string
   ): Promise<Spark[]> {
     const imported: Spark[] = []
     const batchSize = 50
@@ -231,8 +231,8 @@ export class BulkOperationsService {
 
     for (let i = 0; i < sparksData.length; i += batchSize) {
       const batch = sparksData.slice(i, i + batchSize)
-      
-      this.emitProgress(socketId, {
+
+      this.emitProgress(socketId ?? null, {
         operationId,
         phase: 'database',
         progress: Math.round((i / total) * 40) + 20,
@@ -242,7 +242,7 @@ export class BulkOperationsService {
 
       const sparkCreateData = batch.map(sparkData => {
         const sparkId = options.preserveIds && sparkData.id ? sparkData.id : uuidv4()
-        
+
         return {
           id: sparkId,
           userId,
@@ -290,7 +290,7 @@ export class BulkOperationsService {
               id: { in: sparkCreateData.map(s => s.id) }
             }
           })
-          
+
           imported.push(...createdSparks)
         } catch (error) {
           if (!options.skipInvalid) {
@@ -308,12 +308,12 @@ export class BulkOperationsService {
     importedSparks: Spark[],
     originalSparksData: ImportValidationData['sparks'],
     options: ImportOptions,
-    socketId: string | null,
-    operationId: string
+    operationId: string,
+    socketId?: string
   ): Promise<number> {
     const sparkIdMap = new Map(importedSparks.map(spark => {
       // Find original spark data to get the mapping
-      const originalId = originalSparksData.find(original => 
+      const originalId = originalSparksData.find(original =>
         original.title === spark.title && original.description === spark.description
       )?.id
       return [originalId || spark.id, spark.id]
@@ -325,16 +325,16 @@ export class BulkOperationsService {
     for (const originalSpark of originalSparksData) {
       if (!originalSpark.todos || originalSpark.todos.length === 0) continue
 
-      const sparkId = sparkIdMap.get(originalSpark.id || originalSpark.title) || 
+      const sparkId = sparkIdMap.get(originalSpark.id || originalSpark.title) ||
                      importedSparks.find(s => s.title === originalSpark.title)?.id
 
       if (!sparkId) continue
 
       const todosData = originalSpark.todos
-      
+
       for (let i = 0; i < todosData.length; i += batchSize) {
         const batch = todosData.slice(i, i + batchSize)
-        
+
         const todoCreateData = batch.map(todoData => ({
           id: options.preserveIds && todoData.id ? todoData.id : uuidv4(),
           sparkId,
@@ -346,6 +346,15 @@ export class BulkOperationsService {
           positionX: todoData.positionX || null,
           positionY: todoData.positionY || null
         }))
+
+        // Emit progress if desired (add here if needed)
+        this.emitProgress(socketId ?? null, {
+          operationId,
+          phase: 'database',
+          progress: 70,
+          total: 100,
+          message: `Importing todos for spark: ${originalSpark.title}`
+        })
 
         try {
           if (options.updateExisting) {
@@ -380,8 +389,8 @@ export class BulkOperationsService {
     importedSparks: Spark[],
     connectionsData: ImportValidationData['connections'],
     options: ImportOptions,
-    socketId: string | null,
-    operationId: string
+    operationId: string,
+    socketId?: string
   ): Promise<number> {
     if (!connectionsData || connectionsData.length === 0) return 0
 
@@ -391,7 +400,7 @@ export class BulkOperationsService {
 
     for (let i = 0; i < connectionsData.length; i += batchSize) {
       const batch = connectionsData.slice(i, i + batchSize)
-      
+
       const connectionCreateData = batch
         .filter(conn => sparkIdMap.has(conn.sparkId1) && sparkIdMap.has(conn.sparkId2))
         .map(connData => ({
@@ -404,10 +413,18 @@ export class BulkOperationsService {
 
       if (connectionCreateData.length === 0) continue
 
+      this.emitProgress(socketId ?? null, {
+        operationId,
+        phase: 'database',
+        progress: 90,
+        total: 100,
+        message: `Importing connections: ${i + 1}-${Math.min(i + batchSize, connectionsData.length)} of ${connectionsData.length}`
+      })
+
       try {
         await db.sparkConnection.createMany({
           data: connectionCreateData,
-          skipDuplicates: true
+          skipDuplicates: (true as boolean)
         })
         importedCount += connectionCreateData.length
       } catch (error) {
@@ -440,7 +457,7 @@ export class BulkOperationsService {
   ): Promise<BulkOperationResult & { data?: any }> {
     const startTime = Date.now()
     const opId = operationId || uuidv4()
-    
+
     this.activeOperations.set(opId, true)
 
     try {
@@ -530,7 +547,7 @@ export class BulkOperationsService {
           totalSparks: sparks.length,
           totalConnections: connections.length,
           totalTodos: sparks.reduce((sum, spark) => sum + spark.todos.length, 0),
-          completedTodos: sparks.reduce((sum, spark) => 
+          completedTodos: sparks.reduce((sum, spark) =>
             sum + spark.todos.filter(todo => todo.completed).length, 0)
         }
       }
@@ -557,7 +574,7 @@ export class BulkOperationsService {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      
+
       this.emitProgress(socketId || null, {
         operationId: opId,
         phase: 'error',
@@ -587,7 +604,7 @@ export class BulkOperationsService {
   }
 
   isOperationActive(operationId: string): boolean {
-    return this.activeOperations.has(operationId)
+    return Boolean(this.activeOperations.has(operationId))
   }
 
   cancelOperation(operationId: string): boolean {

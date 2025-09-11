@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { connectionHistoryService } from "@/lib/connection-history-service"
-import { ConnectionType, ConnectionChangeType } from "@prisma/client"
+import { ConnectionType } from "@prisma/client"
+import { ConnectionChangeType } from "@/lib/connection-history-service"
 import { z } from "zod"
 
 const updateConnectionSchema = z.object({
@@ -138,7 +139,7 @@ export async function PUT(
   } catch (error) {
     console.error("Error updating connection:", error)
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid request data", details: error.errors }, { status: 400 })
+      return NextResponse.json({ error: "Invalid request data", details: error.issues }, { status: 400 })
     }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to update connection" },
@@ -158,7 +159,7 @@ export async function DELETE(
     }
 
     const { searchParams } = new URL(request.url)
-    const reason = searchParams.get('reason')
+    const reasonParam = searchParams.get('reason') ?? undefined
 
     // Get current connection before deletion
     const currentConnection = await db.sparkConnection.findFirst({
@@ -200,7 +201,7 @@ export async function DELETE(
       username: session.user.name || session.user.email || 'Unknown User',
       beforeState,
       afterState: null,
-      reason
+      reason: reasonParam
     })
 
     return NextResponse.json({

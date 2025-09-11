@@ -17,17 +17,17 @@ interface NotificationPreferences {
   emailNotifications: boolean;
   pushNotifications: boolean;
   inAppNotifications: boolean;
-  
+
   // Email notification types
   emailSparkUpdates: boolean;
   emailAchievementAlerts: boolean;
   emailCollaborationNotifications: boolean;
-  
+
   // Push notification types
   pushSparkUpdates: boolean;
   pushAchievementAlerts: boolean;
   pushCollaborationNotifications: boolean;
-  
+
   // In-app notification types
   inAppSparkUpdates: boolean;
   inAppAchievementAlerts: boolean;
@@ -50,7 +50,7 @@ export function NotificationSettings() {
     inAppAchievementAlerts: true,
     inAppCollaborationNotifications: true,
   });
-  
+
   const [pushStatus, setPushStatus] = useState<{
     supported: boolean;
     permission: NotificationPermission;
@@ -62,7 +62,7 @@ export function NotificationSettings() {
     subscribed: false,
     loading: false
   });
-  
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export function NotificationSettings() {
     const checkPushStatus = () => {
       const supported = webPushService.checkBrowserSupport();
       const permission = webPushService.getPermissionStatus();
-      
+
       setPushStatus(prev => ({
         ...prev,
         supported,
@@ -103,7 +103,7 @@ export function NotificationSettings() {
           inAppAchievementAlerts: prefs.inAppAchievementAlerts ?? true,
           inAppCollaborationNotifications: prefs.inAppCollaborationNotifications ?? true,
         });
-        
+
         // Check if user has push subscription
         if (prefs.pushNotifications && webPushService.getPermissionStatus() === 'granted') {
           setPushStatus(prev => ({ ...prev, subscribed: true }));
@@ -141,7 +141,7 @@ export function NotificationSettings() {
 
   const handleToggle = (key: keyof NotificationPreferences, value: boolean) => {
     const newPreferences = { ...preferences, [key]: value };
-    
+
     // Auto-disable specific types when global toggle is disabled
     if (key === 'emailNotifications' && !value) {
       newPreferences.emailSparkUpdates = false;
@@ -156,7 +156,7 @@ export function NotificationSettings() {
       newPreferences.inAppAchievementAlerts = false;
       newPreferences.inAppCollaborationNotifications = false;
     }
-    
+
     // Auto-enable global toggle when specific type is enabled
     if (value) {
       if (key.startsWith('email') && key !== 'emailNotifications') {
@@ -167,7 +167,7 @@ export function NotificationSettings() {
         newPreferences.inAppNotifications = true;
       }
     }
-    
+
     savePreferences(newPreferences);
   };
 
@@ -175,7 +175,7 @@ export function NotificationSettings() {
     if (!session?.user?.id || !pushStatus.supported) return;
 
     setPushStatus(prev => ({ ...prev, loading: true }));
-    
+
     try {
       if (pushStatus.permission === 'granted' && preferences.pushNotifications) {
         // Already granted, subscribe user
@@ -185,19 +185,19 @@ export function NotificationSettings() {
       } else {
         // Request permission
         const permission = await webPushService.requestPermission();
-        
+
         if (permission === 'granted') {
           await webPushService.subscribeUser(session.user.id);
-          setPushStatus(prev => ({ 
-            ...prev, 
-            permission: 'granted', 
-            subscribed: true 
+          setPushStatus(prev => ({
+            ...prev,
+            permission: 'granted',
+            subscribed: true
           }));
-          
+
           // Enable push notifications in preferences
           const newPreferences = { ...preferences, pushNotifications: true };
           await savePreferences(newPreferences);
-          
+
           toast.success('Push notifications enabled');
         } else {
           toast.error('Push notification permission denied');
@@ -205,7 +205,7 @@ export function NotificationSettings() {
       }
     } catch (error: any) {
       console.error('Push notification setup failed:', error);
-      
+
       if (error.message.includes('blocked')) {
         toast.error('Push notifications are blocked. Please enable them in your browser settings.');
       } else {
@@ -220,21 +220,21 @@ export function NotificationSettings() {
     if (!session?.user?.id) return;
 
     setPushStatus(prev => ({ ...prev, loading: true }));
-    
+
     try {
       await webPushService.unsubscribeUser(session.user.id);
       setPushStatus(prev => ({ ...prev, subscribed: false }));
-      
+
       // Disable push notifications in preferences
-      const newPreferences = { 
-        ...preferences, 
+      const newPreferences = {
+        ...preferences,
         pushNotifications: false,
         pushSparkUpdates: false,
         pushAchievementAlerts: false,
         pushCollaborationNotifications: false
       };
       await savePreferences(newPreferences);
-      
+
       toast.success('Push notifications disabled');
     } catch (error) {
       console.error('Failed to disable push notifications:', error);
@@ -248,11 +248,11 @@ export function NotificationSettings() {
     if (!pushStatus.supported) {
       return 'Your browser doesn\'t support push notifications. Try using Chrome, Firefox, Safari, or Edge.';
     }
-    
+
     if (pushStatus.permission === 'denied') {
       return 'Push notifications are blocked. You can enable them in your browser settings.';
     }
-    
+
     return null;
   };
 
@@ -260,19 +260,19 @@ export function NotificationSettings() {
     if (!pushStatus.supported) {
       return <Badge variant="destructive">Not Supported</Badge>;
     }
-    
+
     if (pushStatus.permission === 'denied') {
       return <Badge variant="destructive">Blocked</Badge>;
     }
-    
+
     if (pushStatus.subscribed) {
       return <Badge variant="default" className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Enabled</Badge>;
     }
-    
+
     if (pushStatus.permission === 'granted') {
       return <Badge variant="secondary">Available</Badge>;
     }
-    
+
     return <Badge variant="outline">Not Set Up</Badge>;
   };
 
@@ -303,7 +303,7 @@ export function NotificationSettings() {
               </div>
               {getPushStatusBadge()}
             </div>
-            
+
             {getBrowserSupportMessage() && (
               <Alert>
                 <AlertTriangle className="w-4 h-4" />
@@ -312,7 +312,7 @@ export function NotificationSettings() {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             {pushStatus.supported && (
               <div className="flex gap-2">
                 {!pushStatus.subscribed && pushStatus.permission !== 'denied' && (
@@ -324,7 +324,7 @@ export function NotificationSettings() {
                     {pushStatus.loading ? 'Setting up...' : 'Enable Push Notifications'}
                   </Button>
                 )}
-                
+
                 {pushStatus.subscribed && (
                   <Button
                     variant="outline"
@@ -344,7 +344,7 @@ export function NotificationSettings() {
           {/* Global Notification Toggles */}
           <div className="space-y-4">
             <h3 className="font-medium">Notification Channels</h3>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -398,7 +398,7 @@ export function NotificationSettings() {
           {/* Detailed Notification Types */}
           <div className="space-y-4">
             <h3 className="font-medium">Notification Types</h3>
-            
+
             {/* Spark Updates */}
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-muted-foreground">Spark Updates</h4>
@@ -409,7 +409,6 @@ export function NotificationSettings() {
                     checked={preferences.inAppSparkUpdates}
                     onCheckedChange={(value) => handleToggle('inAppSparkUpdates', value)}
                     disabled={loading || !preferences.inAppNotifications}
-                    size="sm"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -418,7 +417,6 @@ export function NotificationSettings() {
                     checked={preferences.emailSparkUpdates}
                     onCheckedChange={(value) => handleToggle('emailSparkUpdates', value)}
                     disabled={loading || !preferences.emailNotifications}
-                    size="sm"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -427,7 +425,6 @@ export function NotificationSettings() {
                     checked={preferences.pushSparkUpdates}
                     onCheckedChange={(value) => handleToggle('pushSparkUpdates', value)}
                     disabled={loading || !preferences.pushNotifications || !pushStatus.subscribed}
-                    size="sm"
                   />
                 </div>
               </div>
@@ -443,7 +440,6 @@ export function NotificationSettings() {
                     checked={preferences.inAppAchievementAlerts}
                     onCheckedChange={(value) => handleToggle('inAppAchievementAlerts', value)}
                     disabled={loading || !preferences.inAppNotifications}
-                    size="sm"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -452,7 +448,6 @@ export function NotificationSettings() {
                     checked={preferences.emailAchievementAlerts}
                     onCheckedChange={(value) => handleToggle('emailAchievementAlerts', value)}
                     disabled={loading || !preferences.emailNotifications}
-                    size="sm"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -461,7 +456,6 @@ export function NotificationSettings() {
                     checked={preferences.pushAchievementAlerts}
                     onCheckedChange={(value) => handleToggle('pushAchievementAlerts', value)}
                     disabled={loading || !preferences.pushNotifications || !pushStatus.subscribed}
-                    size="sm"
                   />
                 </div>
               </div>
@@ -477,7 +471,6 @@ export function NotificationSettings() {
                     checked={preferences.inAppCollaborationNotifications}
                     onCheckedChange={(value) => handleToggle('inAppCollaborationNotifications', value)}
                     disabled={loading || !preferences.inAppNotifications}
-                    size="sm"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -486,7 +479,6 @@ export function NotificationSettings() {
                     checked={preferences.emailCollaborationNotifications}
                     onCheckedChange={(value) => handleToggle('emailCollaborationNotifications', value)}
                     disabled={loading || !preferences.emailNotifications}
-                    size="sm"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -495,7 +487,6 @@ export function NotificationSettings() {
                     checked={preferences.pushCollaborationNotifications}
                     onCheckedChange={(value) => handleToggle('pushCollaborationNotifications', value)}
                     disabled={loading || !preferences.pushNotifications || !pushStatus.subscribed}
-                    size="sm"
                   />
                 </div>
               </div>

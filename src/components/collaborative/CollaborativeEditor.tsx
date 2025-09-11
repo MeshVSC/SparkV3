@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Users, Sync, AlertCircle, CheckCircle } from 'lucide-react';
+import { Users, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CollaborativeEditorProps {
@@ -65,7 +65,7 @@ export function CollaborativeEditor({
   const handleContentChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = event.target.value;
     const currentContent = getCurrentContent();
-    
+
     // Calculate the difference between current and new content
     if (newContent.length > currentContent.length) {
       // Text was inserted
@@ -75,13 +75,13 @@ export function CollaborativeEditor({
         cursorPos
       );
       const insertPosition = cursorPos - insertedText.length;
-      
+
       insertText(insertPosition, insertedText);
     } else if (newContent.length < currentContent.length) {
       // Text was deleted
       const deletedLength = currentContent.length - newContent.length;
       const cursorPos = event.target.selectionStart;
-      
+
       deleteText(cursorPos, deletedLength);
     }
 
@@ -124,7 +124,7 @@ export function CollaborativeEditor({
   // Get status icon
   const getStatusIcon = () => {
     if (!isConnected) return <AlertCircle className="h-4 w-4" />;
-    if (hasPendingOperations) return <Sync className="h-4 w-4 animate-spin" />;
+    if (hasPendingOperations) return <RefreshCw className="h-4 w-4 animate-spin" />;
     return <CheckCircle className="h-4 w-4" />;
   };
 
@@ -162,14 +162,14 @@ export function CollaborativeEditor({
               {pendingOperations.length} pending
             </Badge>
           )}
-          
+
           <Button
             variant="outline"
             size="sm"
             onClick={handleSync}
             disabled={!isConnected}
           >
-            <Sync className="h-3 w-3 mr-1" />
+            <RefreshCw className="h-3 w-3 mr-1" />
             Sync
           </Button>
         </div>
@@ -215,7 +215,7 @@ export function CollaborativeEditor({
           onChange={handleContentChange}
           onSelect={handleSelectionChange}
           placeholder={
-            isReady 
+            isReady
               ? 'Start typing to collaborate in real-time...'
               : 'Connecting to collaborative session...'
           }

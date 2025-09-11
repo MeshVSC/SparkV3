@@ -12,9 +12,9 @@ interface SparkActivityIndicatorProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const SparkActivityIndicator = memo(({ 
+export const SparkActivityIndicator = memo(({
   sparkId,
-  users, 
+  users,
   className = "",
   size = 'sm'
 }: SparkActivityIndicatorProps) => {
@@ -22,7 +22,7 @@ export const SparkActivityIndicator = memo(({
   const maxVisible = size === 'sm' ? 2 : size === 'md' ? 3 : 5;
   const visibleUsers = users.slice(0, maxVisible);
   const hiddenCount = Math.max(0, users.length - maxVisible);
-  
+
   const sizeClasses = {
     sm: { avatar: 'w-4 h-4', border: 'border', ring: 'ring-1', text: 'text-xs' },
     md: { avatar: 'w-6 h-6', border: 'border-2', ring: 'ring-2', text: 'text-sm' },
@@ -78,30 +78,28 @@ export const SparkActivityIndicator = memo(({
             <motion.div
               key={user.userId}
               initial={{ opacity: 0, scale: 0.5, x: -10 }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1, 
+              animate={{
+                opacity: 1,
+                scale: 1,
                 x: 0,
                 transition: { delay: index * 0.05 }
               }}
-              exit={{ 
-                opacity: 0, 
-                scale: 0.5, 
-                x: -10 
+              exit={{
+                opacity: 0,
+                scale: 0.5,
+                x: -10
               }}
             >
-              <Avatar 
+              <Avatar
                 className={`${classes.avatar} ${classes.border} border-background ${classes.ring} ring-offset-1`}
-                style={{ 
-                  ringColor: user.color 
-                }}
+                style={{ ["--tw-ring-color" as any]: user.color }}
               >
                 <AvatarImage src={user.avatarUrl} />
-                <AvatarFallback 
+                <AvatarFallback
                   className={`${classes.text} font-medium`}
-                  style={{ 
+                  style={{
                     backgroundColor: user.color + '20',
-                    color: user.color 
+                    color: user.color
                   }}
                 >
                   {user.username[0]?.toUpperCase()}
@@ -110,7 +108,7 @@ export const SparkActivityIndicator = memo(({
             </motion.div>
           ))}
         </AnimatePresence>
-        
+
         {hiddenCount > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
