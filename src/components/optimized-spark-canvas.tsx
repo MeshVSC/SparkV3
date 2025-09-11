@@ -3,7 +3,10 @@
 import { useState, useCallback, useMemo, memo, useRef } from "react"
 import { useSpark } from "@/contexts/spark-context"
 import { SparkCard } from "@/components/spark-card"
+import { ExportDialog } from "@/components/export-dialog"
+import { Button } from "@/components/ui/button"
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { Download } from "lucide-react"
 import { Spark } from "@/types/spark"
 import { CursorOverlay } from "@/components/cursor-overlay"
 import { ActiveUsersIndicator } from "@/components/active-users-indicator"
@@ -64,6 +67,35 @@ const SparkItem = memo(({
     </div>
   )
 })
+
+SparkItem.displayName = "SparkItem"
+
+// Export button component for the canvas
+const ExportButton = memo(({ sparks }: { sparks: Spark[] }) => {
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setIsExportDialogOpen(true)}
+        className="bg-background border"
+      >
+        <Download className="h-3 w-3 mr-1" />
+        Export
+      </Button>
+      
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        sparks={sparks}
+      />
+    </>
+  )
+})
+
+ExportButton.displayName = "ExportButton"
 
 export const SparkCanvas = memo(() => {
   const { state, actions } = useSpark()
@@ -197,6 +229,7 @@ export const SparkCanvas = memo(() => {
         >
           Timeline View
         </button>
+        <ExportButton sparks={visibleSparks} />
       </div>
 
       {/* Connection Status */}

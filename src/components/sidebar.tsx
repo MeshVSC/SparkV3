@@ -24,7 +24,8 @@ import {
   AlertTriangle,
   Tag as TagIcon,
   Menu,
-  X
+  X,
+  FileSpreadsheet
 } from "lucide-react"
 import { CreateSparkDialog } from "@/components/create-spark-dialog"
 import { AchievementCenter } from "@/components/achievement-center"
@@ -32,6 +33,7 @@ import { UserAvatar } from "@/components/user-avatar"
 import { AdvancedSearch } from "@/components/enhanced-search"
 import { NotificationDropdown } from "@/components/notifications/NotificationCenter"
 import { ExportDropdown } from "@/components/export-dropdown"
+import { ExportDialog } from "@/components/export-dialog"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
@@ -43,6 +45,7 @@ export function Sidebar() {
   const isMobile = useIsMobile()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isAchievementCenterOpen, setIsAchievementCenterOpen] = useState(false)
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
@@ -382,6 +385,10 @@ export function Sidebar() {
                   sparks={displaySparks}
                   connections={state.sparks.flatMap(spark => spark.connections || [])}
                 />
+                <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setIsExportDialogOpen(true)}>
+                  <FileSpreadsheet className="h-3 w-3 mr-2" />
+                  CSV Export
+                </Button>
                 <Button variant="outline" size="sm" className="w-full justify-start">
                   <Settings className="h-3 w-3 mr-2" />
                   Settings
@@ -445,6 +452,12 @@ export function Sidebar() {
       <AchievementCenter
         isOpen={isAchievementCenterOpen}
         onOpenChange={setIsAchievementCenterOpen}
+      />
+      
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        sparks={displaySparks}
       />
     </>
   )
