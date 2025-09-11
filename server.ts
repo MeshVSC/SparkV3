@@ -3,6 +3,7 @@
 import { socketNotificationIntegration } from '@/lib/notification/SocketNotificationIntegration';
 import { emailServiceIntegration } from '@/lib/email/EmailServiceIntegration';
 import { CollaborativeEditingService } from '@/lib/collaborative-editing';
+import { PresenceService } from '@/lib/presence-service';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import next from 'next';
@@ -48,6 +49,9 @@ async function createCustomServer() {
     // Initialize collaborative editing service
     const collaborativeEditingService = new CollaborativeEditingService(io);
     
+    // Initialize presence service
+    const presenceService = new PresenceService(io);
+    
     // Initialize notification integration with Socket.IO
     socketNotificationIntegration.initialize(io);
     
@@ -59,6 +63,7 @@ async function createCustomServer() {
       console.log(`> Ready on http://${hostname}:${currentPort}`);
       console.log(`> Socket.IO server running at ws://${hostname}:${currentPort}/api/socketio`);
       console.log(`> Collaborative editing service initialized`);
+      console.log(`> Presence service initialized`);
       console.log(`> Email service integration initialized`);
     });
 

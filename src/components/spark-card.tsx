@@ -26,7 +26,9 @@ import {
 import { useSpark } from "@/contexts/spark-context"
 import { SparkDetailDialog } from "@/components/spark-detail-dialog"
 import { CommentSection } from "@/components/ui/comment-section"
-// import { SparkCollaborationIndicator } from "@/components/collaboration/spark-collaboration-indicator"
+import { SparkActivityIndicator } from "@/components/spark-activity-indicator"
+import { usePresence } from "@/hooks/use-presence"
+import { useUser } from "@/contexts/user-context"
 
 interface SparkCardProps {
   spark: Spark
@@ -38,9 +40,19 @@ interface SparkCardProps {
 
 export function SparkCard({ spark, isSelected = false, onClick, isDragging = false, style }: SparkCardProps) {
   const { actions } = useSpark()
+  const { user } = useUser()
   const [showDetailDialog, setShowDetailDialog] = useState(false)
   const [showTodos, setShowTodos] = useState(false)
   const [showComments, setShowComments] = useState(false)
+
+  // Get presence users for this spark
+  const { users } = usePresence({
+    sparkId: spark.id,
+    userId: user?.id || 'guest-user',
+    username: user?.name || user?.email || 'Guest User',
+    avatarUrl: user?.avatar,
+    enabled: false // Only enable when spark is selected or being viewed
+  })
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -158,8 +170,12 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
               </Badge>
             </div>
 
-            {/* Collaboration indicator */}
-            {/* <SparkCollaborationIndicator sparkId={spark.id} /> */}
+            {/* Activity indicator */}
+            <SparkActivityIndicator 
+              sparkId={spark.id} 
+              users={users}
+              size="sm"
+            />
           </div>
         </CardHeader>
 

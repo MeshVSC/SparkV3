@@ -1,11 +1,14 @@
 "use client"
 
-import { useState, useCallback, useMemo, memo } from "react"
+import { useState, useCallback, useMemo, memo, useRef } from "react"
 import { useSpark } from "@/contexts/spark-context"
 import { SparkCard } from "@/components/spark-card"
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { Spark } from "@/types/spark"
-// import { FixedSizeGrid as Grid } from 'react-window'
+import { CursorOverlay } from "@/components/cursor-overlay"
+import { ActiveUsersIndicator } from "@/components/active-users-indicator"
+import { usePresence } from "@/hooks/use-presence"
+import { useUser } from "@/contexts/user-context"
 
 interface ConnectionLine {
   id: string
@@ -64,9 +67,20 @@ const SparkItem = memo(({
 
 export const SparkCanvas = memo(() => {
   const { state, actions } = useSpark()
+  const { user } = useUser()
   const [activeSpark, setActiveSpark] = useState<Spark | null>(null)
   const [viewportBounds, setViewportBounds] = useState({
     minX: 0, minY: 0, maxX: 1000, maxY: 800
+  })
+  const canvasRef = useRef<HTMLDivElement>(null)
+
+  // Presence hook for real-time collaboration
+  const { users, cursors, isConnected, updateCursor } = usePresence({
+    sparkId: 'canvas', // Global canvas presence
+    userId: user?.id || 'guest-user',
+    username: user?.name || user?.email || 'Guest User',
+    avatarUrl: user?.avatar,
+    enabled: true
   })
 
   const sensors = useSensors(
@@ -147,10 +161,30 @@ export const SparkCanvas = memo(() => {
     setViewportBounds(newBounds)
   }, [])
 
+  // Handle mouse movement for cursor tracking
+  const handleMouseMove = useCallback((event: React.MouseEvent) => {
+    if (!canvasRef.current) return
+    
+    const rect = canvasRef.current.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+    
+    updateCursor(x, y)
+  }, [updateCursor])
+
   return (
-    <div className="relative w-full h-full overflow-hidden bg-background">
-      {/* Canvas Controls */}
+    <div 
+      ref={canvasRef}
+      className="relative w-full h-full overflow-hidden bg-background"
+      onMouseMove={handleMouseMove}
+    >
+      {/* Canvas Controls and Presence Indicators */}
       <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <ActiveUsersIndicator 
+          users={users}
+          showUsernames={false}
+          maxVisible={5}
+        />
         <button
           className="px-3 py-1 bg-primary text-primary-foreground rounded-md text-sm"
           onClick={() => actions.setViewMode('kanban')}
@@ -164,6 +198,13 @@ export const SparkCanvas = memo(() => {
           Timeline View
         </button>
       </div>
+
+      {/* Connection Status */}
+      {!isConnected && (
+        <div className="absolute top-4 left-4 z-10 px-3 py-1 bg-yellow-500 text-white rounded-md text-sm">
+          Disconnected
+        </div>
+      )}
 
       <DndContext
         sensors={sensors}
@@ -213,6 +254,9 @@ export const SparkCanvas = memo(() => {
           Connections: {connectionLines.length}
         </div>
       )}
+
+      {/* Cursor Overlay */}
+      <CursorOverlay cursors={cursors} />
     </div>
   )
 })
