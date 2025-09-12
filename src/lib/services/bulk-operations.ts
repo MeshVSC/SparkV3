@@ -280,8 +280,7 @@ export class BulkOperationsService {
         // Use createMany for bulk insert
         try {
           await db.spark.createMany({
-            data: sparkCreateData,
-            skipDuplicates: options.skipInvalid
+            data: sparkCreateData
           })
 
           // Fetch created sparks for further processing
@@ -368,8 +367,7 @@ export class BulkOperationsService {
             }
           } else {
             await db.todo.createMany({
-              data: todoCreateData,
-              skipDuplicates: options.skipInvalid
+              data: todoCreateData
             })
             importedCount += todoCreateData.length
           }
@@ -423,8 +421,7 @@ export class BulkOperationsService {
 
       try {
         await db.sparkConnection.createMany({
-          data: connectionCreateData,
-          skipDuplicates: (true as boolean)
+          data: connectionCreateData
         })
         importedCount += connectionCreateData.length
       } catch (error) {

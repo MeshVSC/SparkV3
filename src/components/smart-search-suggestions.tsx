@@ -60,13 +60,6 @@ export function SmartSearchSuggestions({
   // Debounce the search query to avoid excessive API calls
   const debouncedValue = useDebounce(value, 300)
 
-  // Load saved searches on mount
-  useEffect(() => {
-    if (user?.id) {
-      loadSavedSearches()
-    }
-  }, [user?.id])
-
   const loadSavedSearches = async () => {
     if (!user?.id) return
     
@@ -80,6 +73,13 @@ export function SmartSearchSuggestions({
       console.error('Failed to load saved searches:', error)
     }
   }
+
+  // Load saved searches on mount
+  useEffect(() => {
+    if (user?.id) {
+      loadSavedSearches()
+    }
+  }, [user?.id])
 
   // Generate contextual suggestions based on current spark content and user activity
   const contextualSuggestions = useMemo((): SmartSuggestion[] => {

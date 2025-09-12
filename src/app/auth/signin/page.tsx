@@ -132,21 +132,16 @@ export default function SignIn() {
                   
                   if (response.ok) {
                     const userData = await response.json()
-                    // After successful registration, sign in the user
-                    const signInResponse = await fetch('/api/auth/signin', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        email: formData.email,
-                        password: formData.password,
-                      }),
+                    // After successful registration, sign in the user using NextAuth
+                    const { signIn } = await import('next-auth/react')
+                    const signInResult = await signIn('credentials', {
+                      email: formData.email,
+                      password: formData.password,
+                      redirect: false,
                     })
                     
-                    if (signInResponse.ok) {
-                      const signInData = await signInResponse.json()
-                      handleAuthSuccess(signInData.user.id, false)
+                    if (signInResult?.ok && !signInResult.error) {
+                      handleAuthSuccess(userData.user.id, false)
                     } else {
                       alert('Account created but sign in failed. Please try signing in manually.')
                     }

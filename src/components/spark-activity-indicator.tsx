@@ -1,9 +1,10 @@
 "use client"
 
-import React, { memo } from 'react';
+import React, { memo, useEffect } from 'react';
 import { PresenceUser } from '@/lib/presence-service';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 interface SparkActivityIndicatorProps {
   sparkId: string;
@@ -18,6 +19,14 @@ export const SparkActivityIndicator = memo(({
   className = "",
   size = 'sm'
 }: SparkActivityIndicatorProps) => {
+  console.log('[SparkActivityIndicator] Component rendering:', {
+    timestamp: new Date().toISOString(),
+    sparkId,
+    usersLength: users?.length || 0,
+    size,
+    renderCount: Math.random()
+  });
+  
   const isActive = users.length > 0;
   const maxVisible = size === 'sm' ? 2 : size === 'md' ? 3 : 5;
   const visibleUsers = users.slice(0, maxVisible);
@@ -34,6 +43,15 @@ export const SparkActivityIndicator = memo(({
   if (!isActive) {
     return null;
   }
+
+  // Log AnimatePresence rendering
+  useEffect(() => {
+    console.log('[SparkActivityIndicator] AnimatePresence rendering:', {
+      timestamp: new Date().toISOString(),
+      visibleUsersLength: visibleUsers.length,
+      sparkId
+    })
+  })
 
   return (
     <motion.div
@@ -110,13 +128,15 @@ export const SparkActivityIndicator = memo(({
         </AnimatePresence>
 
         {hiddenCount > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`flex items-center justify-center ${classes.avatar} bg-muted rounded-full ${classes.border} border-background ${classes.text} font-medium`}
-          >
-            +{hiddenCount}
-          </motion.div>
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={`flex items-center justify-center ${classes.avatar} bg-muted rounded-full ${classes.border} border-background ${classes.text} font-medium`}
+            >
+              +{hiddenCount}
+            </motion.div>
+          </AnimatePresence>
         )}
       </div>
     </motion.div>

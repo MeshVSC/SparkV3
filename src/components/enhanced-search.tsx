@@ -1,7 +1,8 @@
 
-"use client"
+ "use client"
 
 import { useState, useMemo, useCallback, useEffect } from "react"
+import { useRef } from 'react';
 import { Search, Filter, X, Tag, Calendar, Sparkles, Settings } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -92,6 +93,13 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
 
   // Advanced search using SearchService
   const filteredSparks = useMemo(() => {
+    console.log('[AdvancedSearch] filteredSparks useMemo recalculating:', {
+      timestamp: new Date().toISOString(),
+      sparksLength: state.sparks.length,
+      filters,
+      searchConfig
+    })
+    
     if (state.sparks.length === 0) return []
 
     // Use the SearchService for advanced fuzzy search
@@ -104,9 +112,16 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
     })
 
     // Extract sparks from search results and sort by relevance score
-    return searchResults
+    const result = searchResults
       .sort((a, b) => (a.score || 0) - (b.score || 0)) // Lower score = better match in Fuse.js
       .map(result => result.item)
+    
+    console.log('[AdvancedSearch] filteredSparks useMemo result:', {
+      timestamp: new Date().toISOString(),
+      resultLength: result.length
+    })
+    
+    return result
   }, [state.sparks, filters, searchConfig])
 
   // Handle search with history tracking
@@ -115,12 +130,17 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
     if (searchFilters) {
       Object.assign(finalFilters, searchFilters)
     }
-    
+
+    console.log('[AdvancedSearch] handleSearch setFilters:', {
+      timestamp: new Date().toISOString(),
+      finalFilters,
+      query
+    })
     setFilters(finalFilters)
-    
+
     // Add to local search history
     getSearchHistory().addSearch(query, filteredSparks.length, finalFilters)
-    
+
     // Add to database search history if user is logged in
     if (user?.id && query.trim()) {
       fetch('/api/search/history', {
@@ -139,6 +159,10 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
   }, [filters, user?.id, filteredSparks.length])
 
   const updateFilters = useCallback((updates: Partial<SearchFilters>) => {
+    console.log('[AdvancedSearch] updateFilters called:', {
+      timestamp: new Date().toISOString(),
+      updates
+    })
     setFilters(prev => ({ ...prev, ...updates }))
   }, [])
 
@@ -146,10 +170,26 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
     updateFilters({ query: value })
   }, [updateFilters])
 
-  // Notify parent component of filtered results
+  // Only notify parent when filteredSparks actually changes (avoid double loop with Sidebar)
+  const prevFilteredSparksRef = useRef<typeof filteredSparks>();
+
   useEffect(() => {
-    onFiltersChange(filteredSparks)
-  }, [filteredSparks, onFiltersChange])
+    console.log('[AdvancedSearch] useEffect onFiltersChange triggered:', {
+      timestamp: new Date().toISOString(),
+      filteredSparksLength: filteredSparks.length,
+      prevLength: prevFilteredSparksRef.current?.length || 0,
+      hasChanged: JSON.stringify(prevFilteredSparksRef.current) !== JSON.stringify(filteredSparks)
+    })
+    
+    if (JSON.stringify(prevFilteredSparksRef.current) !== JSON.stringify(filteredSparks)) {
+      console.log('[AdvancedSearch] Calling onFiltersChange:', {
+        timestamp: new Date().toISOString(),
+        filteredSparks: filteredSparks.map(s => ({ id: s.id, title: s.title }))
+      })
+      onFiltersChange(filteredSparks);
+      prevFilteredSparksRef.current = filteredSparks;
+    }
+  }, [filteredSparks, onFiltersChange]);
 
   const addTag = useCallback((tag: string) => {
     if (!filters.tags.includes(tag)) {
@@ -170,7 +210,7 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
     })
   }, [])
 
-  const hasActiveFilters = filters.query || filters.tags.length > 0 || 
+  const hasActiveFilters = filters.query || filters.tags.length > 0 ||
     filters.status !== "all" || filters.dateFrom || filters.dateTo ||
     filters.xpRange[0] > 0 || filters.xpRange[1] < 1000
 
@@ -209,9 +249,9 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
         <div className="p-4 border rounded-lg bg-card space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-medium">Search Settings</h3>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setSearchConfig({
                 threshold: 0.6,
                 includeMatches: true,
@@ -228,7 +268,7 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
               <Switch
                 id="fuzzy-search"
                 checked={searchConfig.fuzzySearch}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setSearchConfig(prev => ({ ...prev, fuzzySearch: checked }))
                 }
               />
@@ -239,7 +279,7 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
                 <Label>Match Sensitivity: {Math.round((1 - searchConfig.threshold) * 100)}%</Label>
                 <Slider
                   value={[searchConfig.threshold]}
-                  onValueChange={([value]) => 
+                  onValueChange={([value]) =>
                     setSearchConfig(prev => ({ ...prev, threshold: value }))
                   }
                   min={0.1}
@@ -259,7 +299,7 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
               <Switch
                 id="include-matches"
                 checked={searchConfig.includeMatches}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setSearchConfig(prev => ({ ...prev, includeMatches: checked }))
                 }
               />
@@ -284,8 +324,8 @@ export function AdvancedSearch({ onFiltersChange }: AdvancedSearchProps) {
           {/* Status Filter */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
-            <Select 
-              value={filters.status} 
+            <Select
+              value={filters.status}
               onValueChange={(value) => updateFilters({ status: value as SparkStatus | "all" })}
             >
               <SelectTrigger>

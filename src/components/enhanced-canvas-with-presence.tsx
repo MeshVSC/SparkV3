@@ -147,7 +147,7 @@ export const EnhancedCanvasWithPresence = memo(() => {
     const y = (event.clientY - rect.top - pan.y) / zoom
     
     updateCursor(x, y)
-  }, [updateCursor, showPresence, pan, zoom])
+  }, [showPresence, pan, zoom])
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev * 1.2, 3))

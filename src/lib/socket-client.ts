@@ -1,6 +1,6 @@
 import { io, Socket } from "socket.io-client";
 
-const URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3000";
+const URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL || "http://localhost:3000";
 
 let socket: Socket | null = null;
 
@@ -13,13 +13,10 @@ export function getSocket(): Socket | null {
   if (!socket) {
     socket = io(URL, {
       path: '/api/socketio',
-      transports: ["websocket"],
-      autoConnect: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      timeout: 10000,
+      transports: ["websocket", "polling"],
+      autoConnect: false, // Don't auto-connect
+      reconnection: false, // Disable reconnection to prevent infinite loops
+      timeout: 5000,
       withCredentials: true,
     });
     (window as any).__socketClient = socket;

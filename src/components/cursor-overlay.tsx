@@ -26,10 +26,10 @@ const CursorPointer = memo(({ cursor }: { cursor: UserCursor }) => {
     >
       {/* Cursor pointer */}
       <div className="relative">
-        <svg 
-          width="20" 
-          height="20" 
-          viewBox="0 0 20 20" 
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
           fill="none"
           className="drop-shadow-sm"
         >
@@ -40,15 +40,15 @@ const CursorPointer = memo(({ cursor }: { cursor: UserCursor }) => {
             strokeWidth="1"
           />
         </svg>
-        
+
         {/* User info tooltip - only show on hover or when cursor is active */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           transition={{ delay: 0.5, duration: 0.2 }}
           className="absolute left-5 top-2 flex items-center gap-2 px-2 py-1 rounded-md shadow-lg text-xs whitespace-nowrap z-10"
-          style={{ 
+          style={{
             backgroundColor: cursor.color,
             color: 'white'
           }}
@@ -71,6 +71,23 @@ const CursorPointer = memo(({ cursor }: { cursor: UserCursor }) => {
 CursorPointer.displayName = 'CursorPointer';
 
 export const CursorOverlay = memo(({ cursors }: CursorOverlayProps) => {
+  console.log('[CursorOverlay] Component rendering:', {
+    timestamp: new Date().toISOString(),
+    enabled: process.env.NEXT_PUBLIC_ENABLE_CURSOR_OVERLAY,
+    cursorsLength: cursors?.length || 0,
+    renderCount: Math.random()
+  });
+
+  if (process.env.NEXT_PUBLIC_ENABLE_CURSOR_OVERLAY !== 'true') return null;
+
+  // Log AnimatePresence rendering in useEffect
+  React.useEffect(() => {
+    console.log('[CursorOverlay] AnimatePresence rendering:', {
+      timestamp: new Date().toISOString(),
+      cursorsLength: cursors.length
+    })
+  })
+
   return (
     <div className="fixed inset-0 pointer-events-none z-40">
       <AnimatePresence>
@@ -81,5 +98,3 @@ export const CursorOverlay = memo(({ cursors }: CursorOverlayProps) => {
     </div>
   );
 });
-
-CursorOverlay.displayName = 'CursorOverlay';

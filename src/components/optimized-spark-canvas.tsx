@@ -206,7 +206,7 @@ export const SparkCanvas = memo(() => {
     const scrollY = canvasRef.current.scrollTop || 0
     
     updateCursor(x + scrollX, y + scrollY)
-  }, [updateCursor])
+  }, [])
 
   // Handle spark selection
   const handleSparkClick = useCallback((spark: Spark) => {
@@ -219,7 +219,7 @@ export const SparkCanvas = memo(() => {
     setTimeout(() => {
       updateCursor(-1000, -1000) // Move cursor off-screen
     }, 100)
-  }, [updateCursor])
+  }, [])
 
   return (
     <div 

@@ -76,12 +76,13 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              console.log('RootLayout bootstrap script executed at', new Date().toISOString());
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js')
                     .then(function(registration) {
                       console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                      
+
                       // Check for updates
                       registration.addEventListener('updatefound', function() {
                         console.log('ServiceWorker update found');

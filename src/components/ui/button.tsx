@@ -47,6 +47,11 @@ function Button({
   }) {
   const Comp = asChild ? Slot : "button"
 
+  if (typeof window !== 'undefined') {
+    // Minimal, non-noisy render log to verify visibility in browser console
+    console.log('[UI/Button] render', { variant, size, className });
+  }
+
   return (
     <Comp
       data-slot="button"

@@ -17,6 +17,13 @@ interface AchievementCelebrationProps {
 }
 
 export function AchievementCelebration({ show, achievement, onComplete }: AchievementCelebrationProps) {
+  console.log('[AchievementCelebration] Component rendering:', {
+    timestamp: new Date().toISOString(),
+    show,
+    achievementName: achievement?.name || 'none',
+    renderCount: Math.random()
+  });
+  
   const [isVisible, setIsVisible] = useState(false)
   const { toast } = useToast()
 
@@ -42,6 +49,19 @@ export function AchievementCelebration({ show, achievement, onComplete }: Achiev
 
   if (!achievement) return null
 
+  useEffect(() => {
+    console.log('[AchievementCelebration] Render return:', {
+      timestamp: new Date().toISOString(),
+      isVisible,
+      willRenderAnimatePresence: isVisible
+    })
+    
+    console.log('[AchievementCelebration] AnimatePresence rendering:', {
+      timestamp: new Date().toISOString(),
+      isVisible
+    })
+  })
+  
   return (
     <AnimatePresence>
       {isVisible && (

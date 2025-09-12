@@ -21,12 +21,26 @@ export const ActiveUsersIndicator = memo(({
   showUsernames = false,
   maxVisible = 5
 }: ActiveUsersIndicatorProps) => {
+  console.log('[ActiveUsersIndicator] Component rendering:', {
+    timestamp: new Date().toISOString(),
+    usersLength: users?.length || 0,
+    renderCount: Math.random()
+  });
+  
   const visibleUsers = users.slice(0, maxVisible);
   const hiddenCount = Math.max(0, users.length - maxVisible);
 
   if (users.length === 0) {
     return null;
   }
+
+  // Log AnimatePresence rendering
+  useEffect(() => {
+    console.log('[ActiveUsersIndicator] AnimatePresence rendering:', {
+      timestamp: new Date().toISOString(),
+      visibleUsersLength: visibleUsers.length
+    })
+  })
 
   return (
     <TooltipProvider>

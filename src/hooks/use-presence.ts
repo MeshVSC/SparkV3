@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 import { PresenceUser, UserCursor } from '@/lib/presence-service';
+import { getSocket } from '@/lib/socket-client';
 
 interface UsePresenceOptions {
   sparkId: string;
@@ -27,111 +28,152 @@ export function usePresence(options: UsePresenceOptions) {
     error: null
   });
 
-  const socketRef = useRef<Socket | null>(null);
   const cursorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mountedRef = useRef(true);
 
-  // Initialize socket connection
+  // Get shared socket instance
+  const socket = getSocket();
+
+  // Manage socket connection
   useEffect(() => {
-    if (!enabled || !sparkId || !userId) return;
+    // Check if presence is enabled via environment variable
+    const presenceEnabled = process.env.NEXT_PUBLIC_ENABLE_PRESENCE === 'true';
+    if (!enabled || !sparkId || !userId || !socket || !presenceEnabled) return;
 
-    const socket = io(process.env.NODE_ENV === 'production' ? 
-      `${window.location.protocol}//${window.location.host}` : 
-      'http://localhost:3000', {
-      path: '/api/socketio',
-      transports: ['websocket', 'polling']
-    });
+    // Connect if not connected (with error handling)
+    if (!socket.connected) {
+      try {
+        socket.connect();
+      } catch (error) {
+        console.warn('Socket connection failed:', error);
+        if (mountedRef.current) {
+          setState(prev => ({ ...prev, error: 'Connection failed' }));
+        }
+        return;
+      }
+    }
 
-    socketRef.current = socket;
+    // Define event handlers
+    const onConnect = () => {
+      if (mountedRef.current) {
+        setState(prev => ({ ...prev, isConnected: true, error: null }));
+        socket.emit('join_presence', { sparkId, userId, username, avatarUrl });
+      }
+    };
 
-    socket.on('connect', () => {
-      setState(prev => ({ ...prev, isConnected: true, error: null }));
-      
-      // Join presence room
-      socket.emit('join_presence', {
-        sparkId,
-        userId,
-        username,
-        avatarUrl
-      });
-    });
+    const onDisconnect = () => {
+      if (mountedRef.current) {
+        setState(prev => ({ ...prev, isConnected: false }));
+      }
+    };
 
-    socket.on('disconnect', () => {
-      setState(prev => ({ ...prev, isConnected: false }));
-    });
+    const onPresenceState = (data: { users: PresenceUser[]; cursors: UserCursor[] }) => {
+      if (mountedRef.current) {
+        setState(prev => ({ ...prev, users: data.users, cursors: data.cursors }));
+      }
+    };
 
-    socket.on('presence_state', (data: { users: PresenceUser[]; cursors: UserCursor[] }) => {
-      setState(prev => ({
-        ...prev,
-        users: data.users,
-        cursors: data.cursors
-      }));
-    });
+    const onUserJoined = (user: PresenceUser) => {
+      if (mountedRef.current) {
+        setState(prev => ({
+          ...prev,
+          users: [...prev.users.filter(u => u.userId !== user.userId), user]
+        }));
+      }
+    };
 
-    socket.on('user_joined', (user: PresenceUser) => {
-      setState(prev => ({
-        ...prev,
-        users: [...prev.users.filter(u => u.userId !== user.userId), user]
-      }));
-    });
+    const onUserLeft = (data: { userId: string }) => {
+      if (mountedRef.current) {
+        setState(prev => ({
+          ...prev,
+          users: prev.users.filter(u => u.userId !== data.userId),
+          cursors: prev.cursors.filter(c => c.userId !== data.userId)
+        }));
+      }
+    };
 
-    socket.on('user_left', (data: { userId: string }) => {
-      setState(prev => ({
-        ...prev,
-        users: prev.users.filter(u => u.userId !== data.userId),
-        cursors: prev.cursors.filter(c => c.userId !== data.userId)
-      }));
-    });
+    const onCursorMoved = (cursor: UserCursor) => {
+      if (mountedRef.current) {
+        setState(prev => ({
+          ...prev,
+          cursors: [...prev.cursors.filter(c => c.userId !== cursor.userId), cursor]
+        }));
+      }
+    };
 
-    socket.on('cursor_moved', (cursor: UserCursor) => {
-      setState(prev => ({
-        ...prev,
-        cursors: [
-          ...prev.cursors.filter(c => c.userId !== cursor.userId),
-          cursor
-        ]
-      }));
-    });
+    const onCursorDisappeared = (data: { userId: string }) => {
+      if (mountedRef.current) {
+        setState(prev => ({
+          ...prev,
+          cursors: prev.cursors.filter(c => c.userId !== data.userId)
+        }));
+      }
+    };
 
-    socket.on('cursor_disappeared', (data: { userId: string }) => {
-      setState(prev => ({
-        ...prev,
-        cursors: prev.cursors.filter(c => c.userId !== data.userId)
-      }));
-    });
+    const onPresenceError = (data: { message: string }) => {
+      if (mountedRef.current) {
+        setState(prev => ({ ...prev, error: data.message }));
+      }
+    };
 
-    socket.on('cursor_hidden', (data: { userId: string }) => {
-      setState(prev => ({
-        ...prev,
-        cursors: prev.cursors.filter(c => c.userId !== data.userId)
-      }));
-    });
+    // Register event listeners
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('presence_state', onPresenceState);
+    socket.on('user_joined', onUserJoined);
+    socket.on('user_left', onUserLeft);
+    socket.on('cursor_moved', onCursorMoved);
+    socket.on('cursor_disappeared', onCursorDisappeared);
+    socket.on('cursor_hidden', onCursorDisappeared);
+    socket.on('presence_error', onPresenceError);
 
-    socket.on('presence_error', (data: { message: string }) => {
-      setState(prev => ({ ...prev, error: data.message }));
-    });
+    // Join presence if already connected
+    if (socket.connected) {
+      socket.emit('join_presence', { sparkId, userId, username, avatarUrl });
+    }
 
     return () => {
-      socket.emit('leave_presence', { sparkId });
-      socket.disconnect();
-      socketRef.current = null;
+      // Clean up event listeners
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('presence_state', onPresenceState);
+      socket.off('user_joined', onUserJoined);
+      socket.off('user_left', onUserLeft);
+      socket.off('cursor_moved', onCursorMoved);
+      socket.off('cursor_disappeared', onCursorDisappeared);
+      socket.off('cursor_hidden', onCursorDisappeared);
+      socket.off('presence_error', onPresenceError);
+
+      // Leave presence room
+      if (socket.connected) {
+        socket.emit('leave_presence', { sparkId });
+      }
       
       if (cursorTimeoutRef.current) {
         clearTimeout(cursorTimeoutRef.current);
+        cursorTimeoutRef.current = null;
       }
     };
   }, [sparkId, userId, username, avatarUrl, enabled]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   // Update cursor position
   const updateCursor = useCallback((x: number, y: number) => {
-    if (!socketRef.current || !state.isConnected) return;
+    if (!socket || !socket.connected) return;
 
     // Don't send cursor updates for off-screen positions
     if (x < -999 || y < -999) {
-      socketRef.current.emit('cursor_hide', { sparkId });
+      socket.emit('cursor_hide', { sparkId });
       return;
     }
 
-    socketRef.current.emit('cursor_update', {
+    socket.emit('cursor_update', {
       sparkId,
       x,
       y
@@ -143,18 +185,18 @@ export function usePresence(options: UsePresenceOptions) {
     }
 
     cursorTimeoutRef.current = setTimeout(() => {
-      if (socketRef.current) {
-        socketRef.current.emit('cursor_hide', { sparkId });
+      if (socket && socket.connected) {
+        socket.emit('cursor_hide', { sparkId });
       }
     }, 5000); // Hide cursor after 5 seconds of inactivity
-  }, [sparkId, userId, state.isConnected]);
+  }, [sparkId]);
 
   // Leave presence room
   const leavePresence = useCallback(() => {
-    if (!socketRef.current) return;
+    if (!socket || !socket.connected) return;
 
-    socketRef.current.emit('leave_presence', { sparkId });
-  }, [sparkId]);
+    socket.emit('leave_presence', { sparkId });
+  }, [sparkId, socket]);
 
   return {
     users: state.users.filter(u => u.userId !== userId), // Exclude current user

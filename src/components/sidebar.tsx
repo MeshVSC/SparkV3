@@ -1,158 +1,219 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import { useSession } from "next-auth/react"
-import { useSpark } from "@/contexts/spark-context"
-import { useGuest } from "@/contexts/guest-context"
-import { useSearch } from "@/contexts/search-context"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  Plus, 
-  Lightbulb, 
-  Kanban, 
-  Clock, 
+import { AchievementCenter } from "@/components/achievement-center";
+import { CreateSparkDialog } from "@/components/create-spark-dialog";
+import { AdvancedSearch } from "@/components/enhanced-search";
+import { ExportDialog } from "@/components/export-dialog";
+import { ExportDropdown } from "@/components/export-dropdown";
+import { NotificationDropdown } from "@/components/notifications/NotificationCenter";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserAvatar } from "@/components/user-avatar";
+import { useGuest } from "@/contexts/guest-context";
+import { useSearch } from "@/contexts/search-context";
+import { useSpark } from "@/contexts/spark-context";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { AnimatePresence } from "framer-motion";
+import {
+  AlertTriangle,
+  Clock,
+  FileSpreadsheet,
+  Kanban,
+  Lightbulb,
+  Menu,
+  Plus,
   Settings,
   Sparkles,
+  Tag as TagIcon,
   Target,
   Trophy,
-  AlertTriangle,
-  Tag as TagIcon,
-  Menu,
   X,
-  FileSpreadsheet
-} from "lucide-react"
-import { CreateSparkDialog } from "@/components/create-spark-dialog"
-import { AchievementCenter } from "@/components/achievement-center"
-import { UserAvatar } from "@/components/user-avatar"
-import { AdvancedSearch } from "@/components/enhanced-search"
-import { NotificationDropdown } from "@/components/notifications/NotificationCenter"
-import { ExportDropdown } from "@/components/export-dropdown"
-import { ExportDialog } from "@/components/export-dialog"
-import Link from "next/link"
-import { cn } from "@/lib/utils"
+} from "lucide-react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export function Sidebar() {
-  const { data: session } = useSession()
-  const { state, actions } = useSpark()
-  const { isGuest, guestData } = useGuest()
-  const { setFilteredSparks } = useSearch()
-  const isMobile = useIsMobile()
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isAchievementCenterOpen, setIsAchievementCenterOpen] = useState(false)
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
-  const sidebarRef = useRef<HTMLDivElement>(null)
-  const backdropRef = useRef<HTMLDivElement>(null)
-  const touchStartX = useRef<number | null>(null)
-  const touchStartY = useRef<number | null>(null)
-  const isSwipeFromEdge = useRef(false)
+  console.log("[UI Sidebar] mounted/executing", new Date().toISOString());
+  useEffect(() => {
+    console.log("[UI Sidebar] useEffect mount", new Date().toISOString());
+    return () => console.log("[UI Sidebar] unmount", new Date().toISOString());
+  }, []);
+  const { data: session } = useSession();
+  const { state, actions } = useSpark();
+  const { isGuest, guestData } = useGuest();
+  const { setFilteredSparks } = useSearch();
+  const isMobile = useIsMobile();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isAchievementCenterOpen, setIsAchievementCenterOpen] = useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const isSwipeFromEdge = useRef(false);
 
   const handleCreateSpark = () => {
-    setIsCreateDialogOpen(true)
-  }
+    setIsCreateDialogOpen(true);
+  };
+
+  const prevFilteredSparksRef = useRef<any[]>([]);
 
   const handleFiltersChange = (filteredSparks: any[]) => {
-    setFilteredSparks(filteredSparks)
-  }
+    console.log("[Sidebar] handleFiltersChange called:", {
+      timestamp: new Date().toISOString(),
+      isArray: Array.isArray(filteredSparks),
+      length: filteredSparks?.length || 0,
+      prevLength: prevFilteredSparksRef.current?.length || 0,
+    });
+
+    if (!Array.isArray(filteredSparks)) return;
+
+    const hasChanged =
+      JSON.stringify(prevFilteredSparksRef.current) !==
+      JSON.stringify(filteredSparks);
+    console.log("[Sidebar] handleFiltersChange hasChanged:", {
+      timestamp: new Date().toISOString(),
+      hasChanged,
+      willCallSetFilteredSparks: hasChanged,
+    });
+
+    if (hasChanged) {
+      prevFilteredSparksRef.current = filteredSparks;
+      console.log("[Sidebar] Calling setFilteredSparks:", {
+        timestamp: new Date().toISOString(),
+        sparks: filteredSparks.map((s) => ({ id: s.id, title: s.title })),
+      });
+      setFilteredSparks(filteredSparks);
+    }
+  };
 
   const openMobileSidebar = useCallback(() => {
-    setIsMobileOpen(true)
-  }, [])
+    setIsMobileOpen(true);
+  }, []);
 
   const closeMobileSidebar = useCallback(() => {
-    setIsMobileOpen(false)
-  }, [])
+    setIsMobileOpen(false);
+  }, []);
+
+  // Log sidebar renders
+  useEffect(() => {
+    console.log("[Sidebar] Rendering AdvancedSearch inside AnimatePresence:", {
+      timestamp: new Date().toISOString(),
+      renderCount: Math.random(),
+    });
+  });
 
   // Touch event handlers for swipe gestures
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (!isMobile) return
-    
-    const touch = e.touches[0]
-    touchStartX.current = touch.clientX
-    touchStartY.current = touch.clientY
-    
-    // Check if touch started from left edge (within 20px)
-    isSwipeFromEdge.current = touch.clientX <= 20 && !isMobileOpen
-  }, [isMobile, isMobileOpen])
+  const handleTouchStart = useCallback(
+    (e: TouchEvent) => {
+      if (!isMobile) return;
 
-  const handleTouchEnd = useCallback((e: TouchEvent) => {
-    if (!isMobile || touchStartX.current === null || touchStartY.current === null) return
+      const touch = e.touches[0];
+      touchStartX.current = touch.clientX;
+      touchStartY.current = touch.clientY;
 
-    const touch = e.changedTouches[0]
-    const deltaX = touch.clientX - touchStartX.current
-    const deltaY = touch.clientY - touchStartY.current
-    const absDeltaX = Math.abs(deltaX)
-    const absDeltaY = Math.abs(deltaY)
+      // Check if touch started from left edge (within 20px)
+      isSwipeFromEdge.current = touch.clientX <= 20 && !isMobileOpen;
+    },
+    [isMobile, isMobileOpen]
+  );
 
-    // Only handle horizontal swipes (more horizontal than vertical)
-    if (absDeltaX < 50 || absDeltaY > absDeltaX) {
-      touchStartX.current = null
-      touchStartY.current = null
-      isSwipeFromEdge.current = false
-      return
-    }
+  const handleTouchEnd = useCallback(
+    (e: TouchEvent) => {
+      if (
+        !isMobile ||
+        touchStartX.current === null ||
+        touchStartY.current === null
+      )
+        return;
 
-    // Swipe from left edge to open
-    if (isSwipeFromEdge.current && deltaX > 50) {
-      openMobileSidebar()
-    }
-    // Swipe left on open drawer to close
-    else if (isMobileOpen && deltaX < -50) {
-      closeMobileSidebar()
-    }
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX.current;
+      const deltaY = touch.clientY - touchStartY.current;
+      const absDeltaX = Math.abs(deltaX);
+      const absDeltaY = Math.abs(deltaY);
 
-    touchStartX.current = null
-    touchStartY.current = null
-    isSwipeFromEdge.current = false
-  }, [isMobile, isMobileOpen, openMobileSidebar, closeMobileSidebar])
+      // Only handle horizontal swipes (more horizontal than vertical)
+      if (absDeltaX < 50 || absDeltaY > absDeltaX) {
+        touchStartX.current = null;
+        touchStartY.current = null;
+        isSwipeFromEdge.current = false;
+        return;
+      }
+
+      // Swipe from left edge to open
+      if (isSwipeFromEdge.current && deltaX > 50) {
+        openMobileSidebar();
+      }
+      // Swipe left on open drawer to close
+      else if (isMobileOpen && deltaX < -50) {
+        closeMobileSidebar();
+      }
+
+      touchStartX.current = null;
+      touchStartY.current = null;
+      isSwipeFromEdge.current = false;
+    },
+    [isMobile, isMobileOpen, openMobileSidebar, closeMobileSidebar]
+  );
 
   // Add touch event listeners
   useEffect(() => {
-    if (!isMobile) return
+    if (!isMobile) return;
 
-    document.addEventListener('touchstart', handleTouchStart, { passive: true })
-    document.addEventListener('touchend', handleTouchEnd, { passive: true })
+    document.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+    document.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart)
-      document.removeEventListener('touchend', handleTouchEnd)
-    }
-  }, [isMobile, handleTouchStart, handleTouchEnd])
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [isMobile, handleTouchStart, handleTouchEnd]);
 
   // Handle backdrop click
-  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === backdropRef.current) {
-      closeMobileSidebar()
-    }
-  }, [closeMobileSidebar])
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === backdropRef.current) {
+        closeMobileSidebar();
+      }
+    },
+    [closeMobileSidebar]
+  );
 
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
     if (isMobile && isMobileOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
       return () => {
-        document.body.style.overflow = 'unset'
-      }
+        document.body.style.overflow = "unset";
+      };
     }
-  }, [isMobile, isMobileOpen])
+  }, [isMobile, isMobileOpen]);
 
-  const displaySparks = state.sparks
+  const displaySparks = state.sparks;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "SEEDLING": return "bg-green-100 text-green-800"
-      case "SAPLING": return "bg-blue-100 text-blue-800"
-      case "TREE": return "bg-purple-100 text-purple-800"
-      case "FOREST": return "bg-orange-100 text-orange-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "SEEDLING":
+        return "bg-green-100 text-green-800";
+      case "SAPLING":
+        return "bg-blue-100 text-blue-800";
+      case "TREE":
+        return "bg-purple-100 text-purple-800";
+      case "FOREST":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const SidebarContent = () => (
     <>
@@ -177,26 +238,28 @@ export function Sidebar() {
             <UserAvatar />
           </div>
         </div>
-        
+
         {/* Guest mode warning */}
         {isGuest && (
           <Alert className="mb-4 border-amber-200 bg-amber-50">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-700 text-sm">
-              Your work is saved locally. <Link href="/auth/signin" className="underline font-medium">Sign in</Link> to save it permanently.
+              Your work is saved locally.{" "}
+              <Link href="/auth/signin" className="underline font-medium">
+                Sign in
+              </Link>{" "}
+              to save it permanently.
             </AlertDescription>
           </Alert>
         )}
-        
+
         <div className="mb-4">
-          <AdvancedSearch onFiltersChange={handleFiltersChange} />
+          <AnimatePresence mode="wait">
+            <AdvancedSearch onFiltersChange={handleFiltersChange} />
+          </AnimatePresence>
         </div>
 
-        <Button 
-          onClick={handleCreateSpark}
-          className="w-full"
-          size="sm"
-        >
+        <Button onClick={handleCreateSpark} className="w-full" size="sm">
           <Plus className="h-4 w-4 mr-2" />
           New Spark
         </Button>
@@ -221,16 +284,18 @@ export function Sidebar() {
         <TabsContent value="sparks" className="flex-1 overflow-hidden p-2">
           <div className="space-y-2 max-h-full overflow-y-auto">
             {displaySparks.map((spark) => (
-              <Card 
-                key={spark.id} 
+              <Card
+                key={spark.id}
                 className="cursor-pointer hover:bg-accent/50 transition-colors"
                 onClick={() => actions.selectSpark(spark)}
               >
                 <CardContent className="p-3">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium text-sm line-clamp-1">{spark.title}</h3>
-                    <Badge 
-                      variant="secondary" 
+                    <h3 className="font-medium text-sm line-clamp-1">
+                      {spark.title}
+                    </h3>
+                    <Badge
+                      variant="secondary"
                       className={`text-xs ${getStatusColor(spark.status)}`}
                     >
                       {spark.status.toLowerCase()}
@@ -253,7 +318,7 @@ export function Sidebar() {
 
         <TabsContent value="views" className="flex-1 overflow-hidden p-2">
           <div className="space-y-2">
-            <Card 
+            <Card
               className="cursor-pointer hover:bg-accent/50 transition-colors"
               onClick={() => actions.setViewMode("canvas")}
             >
@@ -262,13 +327,15 @@ export function Sidebar() {
                   <Lightbulb className="h-4 w-4" />
                   <div>
                     <h3 className="font-medium text-sm">Canvas View</h3>
-                    <p className="text-xs text-muted-foreground">Free-form workspace</p>
+                    <p className="text-xs text-muted-foreground">
+                      Free-form workspace
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card 
+            <Card
               className="cursor-pointer hover:bg-accent/50 transition-colors"
               onClick={() => actions.setViewMode("kanban")}
             >
@@ -277,13 +344,15 @@ export function Sidebar() {
                   <Kanban className="h-4 w-4" />
                   <div>
                     <h3 className="font-medium text-sm">Kanban Board</h3>
-                    <p className="text-xs text-muted-foreground">Workflow management</p>
+                    <p className="text-xs text-muted-foreground">
+                      Workflow management
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card 
+            <Card
               className="cursor-pointer hover:bg-accent/50 transition-colors"
               onClick={() => actions.setViewMode("timeline")}
             >
@@ -292,13 +361,15 @@ export function Sidebar() {
                   <Clock className="h-4 w-4" />
                   <div>
                     <h3 className="font-medium text-sm">Timeline</h3>
-                    <p className="text-xs text-muted-foreground">Chronological view</p>
+                    <p className="text-xs text-muted-foreground">
+                      Chronological view
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card 
+            <Card
               className="cursor-pointer hover:bg-accent/50 transition-colors"
               onClick={() => actions.setViewMode("connections")}
             >
@@ -307,7 +378,9 @@ export function Sidebar() {
                   <Target className="h-4 w-4" />
                   <div>
                     <h3 className="font-medium text-sm">Connections</h3>
-                    <p className="text-xs text-muted-foreground">Manage spark relationships</p>
+                    <p className="text-xs text-muted-foreground">
+                      Manage spark relationships
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -319,7 +392,9 @@ export function Sidebar() {
                   <TagIcon className="h-4 w-4" />
                   <div>
                     <h3 className="font-medium text-sm">Tag Management</h3>
-                    <p className="text-xs text-muted-foreground">Organize tags</p>
+                    <p className="text-xs text-muted-foreground">
+                      Organize tags
+                    </p>
                   </div>
                 </Link>
               </CardContent>
@@ -331,7 +406,9 @@ export function Sidebar() {
                   <Settings className="h-4 w-4" />
                   <div>
                     <h3 className="font-medium text-sm">Workspaces</h3>
-                    <p className="text-xs text-muted-foreground">Manage team workspaces</p>
+                    <p className="text-xs text-muted-foreground">
+                      Manage team workspaces
+                    </p>
                   </div>
                 </Link>
               </CardContent>
@@ -359,8 +436,12 @@ export function Sidebar() {
                 <div className="flex justify-between text-sm">
                   <span>Completed Todos</span>
                   <span className="font-medium">
-                    {displaySparks.reduce((sum, spark) => 
-                      sum + (spark.todos?.filter(todo => todo.completed).length || 0), 0
+                    {displaySparks.reduce(
+                      (sum, spark) =>
+                        sum +
+                        (spark.todos?.filter((todo) => todo.completed).length ||
+                          0),
+                      0
                     )}
                   </span>
                 </div>
@@ -372,24 +453,44 @@ export function Sidebar() {
                 <CardTitle className="text-sm">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
                   <Target className="h-3 w-3 mr-2" />
                   Daily Challenge
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setIsAchievementCenterOpen(true)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => setIsAchievementCenterOpen(true)}
+                >
                   <Trophy className="h-3 w-3 mr-2" />
                   Achievement Center
                 </Button>
                 <ExportDropdown
                   projectName="My Spark Project"
                   sparks={displaySparks}
-                  connections={state.sparks.flatMap(spark => spark.connections || [])}
+                  connections={state.sparks.flatMap(
+                    (spark) => spark.connections || []
+                  )}
                 />
-                <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => setIsExportDialogOpen(true)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => setIsExportDialogOpen(true)}
+                >
                   <FileSpreadsheet className="h-3 w-3 mr-2" />
                   CSV Export
                 </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                >
                   <Settings className="h-3 w-3 mr-2" />
                   Settings
                 </Button>
@@ -399,7 +500,7 @@ export function Sidebar() {
         </TabsContent>
       </Tabs>
     </>
-  )
+  );
 
   return (
     <>
@@ -444,21 +545,26 @@ export function Sidebar() {
         </>
       )}
 
-      <CreateSparkDialog 
-        open={isCreateDialogOpen} 
-        onOpenChange={setIsCreateDialogOpen}
-      />
-      
+      {useMemo(
+        () => (
+          <CreateSparkDialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          />
+        ),
+        []
+      )}
+
       <AchievementCenter
         isOpen={isAchievementCenterOpen}
         onOpenChange={setIsAchievementCenterOpen}
       />
-      
+
       <ExportDialog
         open={isExportDialogOpen}
         onOpenChange={setIsExportDialogOpen}
         sparks={displaySparks}
       />
     </>
-  )
+  );
 }

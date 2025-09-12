@@ -16,6 +16,11 @@ export function SearchProvider({ children }: { children: React.ReactNode }) {
   const value = {
     filteredSparks,
     setFilteredSparks: useCallback((sparks: Spark[]) => {
+      console.log('[SearchContext] setFilteredSparks called:', {
+        timestamp: new Date().toISOString(),
+        sparksLength: sparks?.length || 0,
+        sparks: sparks?.map(s => ({ id: s.id, title: s.title })) || []
+      })
       setFilteredSparks(sparks)
     }, [])
   }

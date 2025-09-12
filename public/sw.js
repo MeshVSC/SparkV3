@@ -78,6 +78,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip all Service Worker handling in development mode
+  if (url.hostname === 'localhost' || url.hostname.includes('.local') || url.port === '3000') {
+    return;
+  }
+  
+  // Always skip API routes to prevent interference
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   // Handle API requests with network-first strategy
   if (isApiRequest(request.url)) {
     event.respondWith(handleApiRequest(request));

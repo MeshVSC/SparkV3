@@ -9,9 +9,13 @@ import Image from "next/image"
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false)
 
+  console.log('[Home] render', { ts: new Date().toISOString() });
+
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    console.log('[Home] mounted', { ts: new Date().toISOString() });
+    setIsMounted(true);
+    return () => console.log('[Home] unmounted', { ts: new Date().toISOString() });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,7 +54,7 @@ export default function Home() {
             >
               Spark
             </motion.h1>
-            
+
             {/* Tagline */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -67,8 +71,8 @@ export default function Home() {
               animate={isMounted ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="px-12 py-6 text-xl"
                 onClick={() => window.location.href = '/app'}
               >
@@ -103,7 +107,7 @@ export default function Home() {
                 description: "Instantly capture every idea, thought, or inspiration before it fades away"
               },
               {
-                step: "02", 
+                step: "02",
                 title: "Develop Ideas",
                 description: "Transform your sparks into structured, actionable plans and projects"
               },

@@ -709,7 +709,7 @@ export function SparkCanvas() {
       const y = e.clientY - rect.top
       updateCursor(x, y)
     }
-  }, [updateCursor])
+  }, [])
 
   // Handle spark selection with collaboration
   const handleSparkClick = useCallback((spark: Spark) => {

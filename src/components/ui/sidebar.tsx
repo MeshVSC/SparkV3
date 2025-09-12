@@ -66,6 +66,7 @@ function SidebarProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
+  console.log("[UI SidebarProvider] render", { timestamp: new Date().toISOString(), defaultOpen, openProp });
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
@@ -92,6 +93,13 @@ function SidebarProvider({
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
   }, [isMobile, setOpen, setOpenMobile])
+
+  React.useEffect(() => {
+    console.log("[UI SidebarProvider] mount");
+    return () => {
+      console.log("[UI SidebarProvider] unmount");
+    };
+  }, []);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -164,6 +172,13 @@ function Sidebar({
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  console.log("[UI Sidebar] render", { timestamp: new Date().toISOString(), side, variant, collapsible, isMobile, state });
+  React.useEffect(() => {
+    console.log("[UI Sidebar] mount");
+    return () => {
+      console.log("[UI Sidebar] unmount");
+    };
+  }, []);
 
   if (collapsible === "none") {
     return (

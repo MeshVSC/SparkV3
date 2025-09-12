@@ -296,7 +296,8 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           description: todo.description,
           type: todo.type,
           priority: todo.priority,
-          completed: todo.completed
+          completed: todo.completed,
+          sparkId: sparkId
         })
       }
 

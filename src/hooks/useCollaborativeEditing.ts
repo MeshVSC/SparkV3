@@ -47,7 +47,7 @@ export function useCollaborativeEditing({
 
   // Initialize client ID and vector clock
   useEffect(() => {
-    if (socket) {
+    if (socket && socket.id) {
       clientId.current = socket.id;
       vectorClock.current = VectorClockManager.init(clientId.current);
     }
