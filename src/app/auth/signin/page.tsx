@@ -120,8 +120,10 @@ export default function SignIn() {
             <TabsContent value="signup" className="space-y-4">
               <form onSubmit={async (e) => {
                 e.preventDefault()
+                alert('Form submitted!')
                 setLoading(true)
                 try {
+                  console.log('Form data being sent:', formData)
                   const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: {
