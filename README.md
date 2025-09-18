@@ -1,140 +1,177 @@
-# 🚀 Spark Collaborative Editing System
+# Spark - Productivity & Creativity Platform
 
-A modern, production-ready web application with real-time collaborative editing capabilities for spark content management. Built with advanced operational transformation algorithms to handle conflict resolution when multiple users edit the same content simultaneously. 
-## ✨ Technology Stack
+A modern productivity platform built with Next.js, TypeScript, and Prisma.
 
-This scaffold provides a robust foundation built with:
+## Features
 
-### 🎯 Core Framework
-- **⚡ Next.js 15** - The React framework for production with App Router
-- **📘 TypeScript 5** - Type-safe JavaScript for better developer experience
-- **🎨 Tailwind CSS 4** - Utility-first CSS framework for rapid UI development
+- **Spark Management**: Create, organize, and evolve your ideas from seedlings to forests
+- **Interactive Canvas**: Visual workspace with drag-and-drop functionality
+- **Collaboration**: Real-time collaborative editing and presence indicators
+- **Progress Tracking**: XP system, achievements, and streak tracking
+- **Multiple Views**: Canvas, Kanban, and Timeline views
+- **Search & Filter**: Advanced search with history and saved searches
+- **Templates**: Save and share project templates
+- **Authentication**: Secure user authentication with NextAuth.js
 
-### 🧩 UI Components & Styling
-- **🧩 shadcn/ui** - High-quality, accessible components built on Radix UI
-- **🎯 Lucide React** - Beautiful & consistent icon library
-- **🌈 Framer Motion** - Production-ready motion library for React
-- **🎨 Next Themes** - Perfect dark mode in 2 lines of code
+## Tech Stack
 
-### 📋 Forms & Validation
-- **🎣 React Hook Form** - Performant forms with easy validation
+- **Framework**: Next.js 15 (App Router), TypeScript 5
+- **UI**: Tailwind CSS 4, shadcn/ui, Framer Motion
+- **Database**: Prisma ORM + SQLite, NextAuth.js
+- **State**: Zustand, TanStack Query, React Hook Form + Zod
+- **Testing**: Vitest (unit), Playwright (E2E), Testing Library
+- **Components**: Radix UI, DND Kit, Recharts
+- **Features**: i18n (Next Intl), drag-and-drop (DND Kit), charts (Recharts)
 
-### 🤝 Collaborative Features
-- **⚡ Real-time Collaborative Editing** - Multi-user simultaneous content editing
-- **🔄 Operational Transformation** - Advanced conflict resolution algorithms
-- **⏰ Vector Clocks** - Logical time tracking for operation ordering
-- **📡 Socket.IO** - Real-time bidirectional communication
-- **🔄 Operation Queuing** - Reliable operation delivery and acknowledgment
-- **📊 Participant Management** - Live collaboration session tracking
-- **✅ Zod** - TypeScript-first schema validation
+## Getting Started
 
-### 🔄 State Management & Data Fetching
-- **🐻 Zustand** - Simple, scalable state management
-- **🔄 TanStack Query** - Powerful data synchronization for React
-- **🌐 Axios** - Promise-based HTTP client
+### Prerequisites
 
-### 🗄️ Database & Backend
-- **🗄️ Prisma** - Next-generation Node.js and TypeScript ORM
-- **🔐 NextAuth.js** - Complete open-source authentication solution
+- Node.js 18+ 
+- npm or yarn
 
-### 🎨 Advanced UI Features
-- **📊 TanStack Table** - Headless UI for building tables and datagrids
-- **🖱️ DND Kit** - Modern drag and drop toolkit for React
-- **📊 Recharts** - Redefined chart library built with React and D3
-- **🖼️ Sharp** - High performance image processing
+### Installation
 
-### 🌍 Internationalization & Utilities
-- **🌍 Next Intl** - Internationalization library for Next.js
-- **📅 Date-fns** - Modern JavaScript date utility library
-- **🪝 ReactUse** - Collection of essential React hooks for modern development
-
-## 🎯 Why This Scaffold?
-
-- **🏎️ Fast Development** - Pre-configured tooling and best practices
-- **🎨 Beautiful UI** - Complete shadcn/ui component library with advanced interactions
-- **🔒 Type Safety** - Full TypeScript configuration with Zod validation
-- **📱 Responsive** - Mobile-first design principles with smooth animations
-- **🗄️ Database Ready** - Prisma ORM configured for rapid backend development
-- **🔐 Auth Included** - NextAuth.js for secure authentication flows
-- **📊 Data Visualization** - Charts, tables, and drag-and-drop functionality
-- **🌍 i18n Ready** - Multi-language support with Next Intl
-- **🚀 Production Ready** - Optimized build and deployment settings
-- **🤖 AI-Friendly** - Structured codebase perfect for AI assistance
-
-## 🚀 Quick Start
-
+1. Clone the repository:
 ```bash
-# Install dependencies
+git clone <repository-url>
+cd spark-app
+```
+
+2. Install dependencies:
+```bash
 npm install
+```
 
-# Start development server
+3. Set up environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Set up the database:
+```bash
+npm run db:generate
+npm run db:push
+```
+
+5. Start the development server:
+```bash
 npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see your application running.
+The app will be available at [http://localhost:3000](http://localhost:3000).
 
+## Development Commands
 
+### Core Development
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm start` - Start production server
+- `npm run lint` - Run ESLint
 
+### Database
+- `npm run db:push` - Push schema changes
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:migrate` - Create and run migrations
+- `npm run db:reset` - Reset database
 
+### Testing
 
-- **💻 Code Generation** - Generate components, pages, and features instantly
-- **🎨 UI Development** - Create beautiful interfaces with AI assistance  
-- **🔧 Bug Fixing** - Identify and resolve issues with intelligent suggestions
-- **📝 Documentation** - Auto-generate comprehensive documentation
-- **🚀 Optimization** - Performance improvements and best practices
+#### Unit Tests (Vitest)
+- `npm run test` - Run unit tests
+- `npm run test:ui` - Run tests with UI
+- `npm run test:coverage` - Run tests with coverage report
 
+#### E2E Tests (Playwright)
+- `npm run test:e2e` - Run E2E tests
+- `npm run test:e2e:ui` - Run E2E tests with UI
+- `npm run test:e2e:headed` - Run E2E tests in headed mode
 
-## 📁 Project Structure
+#### All Tests
+- `npm run test:all` - Run both unit and E2E tests
+
+## Testing Setup
+
+### Unit Testing
+- **Framework**: Vitest with React Testing Library
+- **Environment**: jsdom with global test utilities
+- **Mocking**: MSW for API mocking, comprehensive mocks for Next.js
+- **Coverage**: v8 coverage reporting
+
+### E2E Testing
+- **Framework**: Playwright
+- **Browsers**: Chrome, Firefox, Safari (desktop + mobile)
+- **Features**: Auto-retry, trace collection, screenshot on failure
+- **Authentication**: Shared auth state across tests
+
+### Test Databases
+- **Local**: SQLite test database (`test.db`)
+- **CI**: Separate CI test database (`ci-test.db`)
+- **Utilities**: Database seeding and cleanup helpers
+
+## Project Structure
 
 ```
-src/
-├── app/                 # Next.js App Router pages
-├── components/          # Reusable React components
-│   └── ui/             # shadcn/ui components
-├── hooks/              # Custom React hooks
-└── lib/                # Utility functions and configurations
+├── src/
+│   ├── app/                 # Next.js App Router pages
+│   ├── components/          # React components
+│   │   ├── ui/             # shadcn/ui components
+│   │   └── ...             # Feature components
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utility libraries
+│   ├── types/              # TypeScript type definitions
+│   ├── utils/              # Utility functions
+│   ├── test/               # Test configuration & utilities
+│   └── __tests__/          # Unit test files
+├── e2e/                    # E2E test files
+├── prisma/                 # Database schema and migrations
+├── playwright.config.ts    # Playwright configuration
+├── vitest.config.ts       # Vitest configuration
+└── ...
 ```
 
-## 🎨 Available Features & Components
+## Contributing
 
-This scaffold includes a comprehensive set of modern web development tools:
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes
+4. Run tests: `npm run test:all`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
-### 🧩 UI Components (shadcn/ui)
-- **Layout**: Card, Separator, Aspect Ratio, Resizable Panels
-- **Forms**: Input, Textarea, Select, Checkbox, Radio Group, Switch
-- **Feedback**: Alert, Toast (Sonner), Progress, Skeleton
-- **Navigation**: Breadcrumb, Menubar, Navigation Menu, Pagination
-- **Overlay**: Dialog, Sheet, Popover, Tooltip, Hover Card
-- **Data Display**: Badge, Avatar, Calendar
+### Code Quality
 
-### 📊 Advanced Data Features
-- **Tables**: Powerful data tables with sorting, filtering, pagination (TanStack Table)
-- **Charts**: Beautiful visualizations with Recharts
-- **Forms**: Type-safe forms with React Hook Form + Zod validation
+- All code must pass linting: `npm run lint`
+- Unit tests are required for new features
+- E2E tests should cover critical user flows
+- Maintain test coverage above 80%
 
-### 🎨 Interactive Features
-- **Animations**: Smooth micro-interactions with Framer Motion
-- **Drag & Drop**: Modern drag-and-drop functionality with DND Kit
-- **Theme Switching**: Built-in dark/light mode support
+## CI/CD
 
-### 🔐 Backend Integration
-- **Authentication**: Ready-to-use auth flows with NextAuth.js
-- **Database**: Type-safe database operations with Prisma
-- **API Client**: HTTP requests with Axios + TanStack Query
-- **State Management**: Simple and scalable with Zustand
+The project uses GitHub Actions for continuous integration:
 
-### 🌍 Production Features
-- **Internationalization**: Multi-language support with Next Intl
-- **Image Optimization**: Automatic image processing with Sharp
-- **Type Safety**: End-to-end TypeScript with Zod validation
-- **Essential Hooks**: 100+ useful React hooks with ReactUse for common patterns
+- **Linting**: ESLint checks on all PRs
+- **Unit Tests**: Vitest with coverage reporting
+- **E2E Tests**: Playwright across multiple browsers
+- **Build**: Verification builds for all environments
 
+Tests run automatically on:
+- Pull requests to `main` and `develop`
+- Pushes to `main` and `develop`
 
+## Environment Variables
 
-Built with ❤️ for the developer community. 
+Create a `.env` file based on `.env.example`:
+
+```env
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_SECRET="your-secret-key"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+For testing, use `.env.test` which is automatically configured.
+
+## License
+
+This project is licensed under the MIT License.

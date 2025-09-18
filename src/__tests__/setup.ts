@@ -1,5 +1,25 @@
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import { beforeAll, afterEach, afterAll } from 'vitest'
+import { cleanup } from '@testing-library/react'
+import { setupServer } from 'msw/node'
+import { handlers } from './mocks/handlers'
+
+// Mock server setup
+export const server = setupServer(...handlers)
+
+// Setup MSW server
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: 'error' })
+})
+
+afterEach(() => {
+  cleanup()
+  server.resetHandlers()
+})
+
+afterAll(() => {
+  server.close()
+})
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
@@ -9,109 +29,86 @@ vi.mock('next/navigation', () => ({
     back: vi.fn(),
     forward: vi.fn(),
     refresh: vi.fn(),
-    prefetch: vi.fn()
+    prefetch: vi.fn(),
   }),
+  usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(),
-  usePathname: () => '/'
 }))
 
-// Mock NextAuth
+// Mock Next Auth
 vi.mock('next-auth/react', () => ({
-  useSession: () => ({
-    data: {
-      user: {
-        id: 'test-user-id',
-        name: 'Test User',
-        email: 'test@example.com'
-      }
-    },
-    status: 'authenticated'
-  }),
-  SessionProvider: ({ children }: { children: React.ReactNode }) => children
+  useSession: vi.fn(() => ({
+    data: null,
+    status: 'unauthenticated',
+  })),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  getSession: vi.fn(),
+  SessionProvider: ({ children, session }: any) => children,
 }))
 
-// Mock Prisma
-vi.mock('@/lib/db', () => ({
-  db: {
-    spark: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn()
-    },
+// Mock Prisma Client
+vi.mock('@/lib/prisma', () => ({
+  default: {
     user: {
       findUnique: vi.fn(),
-      update: vi.fn()
-    }
-  }
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    spark: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+    todo: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+  },
 }))
 
-// Mock localStorage
-const localStorageMock = {
-  store: new Map<string, string>(),
-  getItem: vi.fn((key: string) => localStorageMock.store.get(key) || null),
-  setItem: vi.fn((key: string, value: string) => {
-    localStorageMock.store.set(key, value)
-  }),
-  removeItem: vi.fn((key: string) => {
-    localStorageMock.store.delete(key)
-  }),
-  clear: vi.fn(() => {
-    localStorageMock.store.clear()
+// Global test utilities
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}))
+
+// Mock IntersectionObserver
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+  root: null,
+  rootMargin: '',
+  thresholds: [],
+}))
+
+// Mock matchMedia
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(), // deprecated
+      removeListener: vi.fn(), // deprecated
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
   })
 }
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock
-})
-
-// Mock performance API
-Object.defineProperty(window, 'performance', {
-  value: {
-    now: vi.fn(() => Date.now()),
-    mark: vi.fn(),
-    measure: vi.fn(),
-    getEntriesByType: vi.fn(() => []),
-    memory: {
-      usedJSHeapSize: 1000000,
-      totalJSHeapSize: 2000000
-    }
-  }
-})
-
-// Mock fetch
-global.fetch = vi.fn()
-
-// Mock File
-global.File = class MockFile {
-  constructor(public content: string[], public name: string, public options?: FilePropertyBag) {}
-  
-  get size() {
-    return this.content.join('').length
-  }
-  
-  get type() {
-    return this.options?.type || 'text/plain'
-  }
-  
-  async text() {
-    return this.content.join('')
-  }
-}
-
-// Mock navigator
-Object.defineProperty(window, 'navigator', {
-  value: {
-    ...window.navigator,
-    onLine: true,
-    serviceWorker: {
-      register: vi.fn(() => Promise.resolve({ update: vi.fn() })),
-      getRegistration: vi.fn(() => Promise.resolve({ update: vi.fn() }))
-    }
-  }
-})
-
-export const mockFileUpload = (name: string, content: string, type = 'text/plain') => {
-  return new File([content], name, { type })
+// Mock HTMLCanvasElement
+if (typeof HTMLCanvasElement !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = vi.fn()
 }
