@@ -53,7 +53,7 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
         
         toast.success("Signed in successfully")
         onSuccess?.()
-        router.push("/")
+        router.push("/app")
       }
     } catch (error) {
       toast.error("Something went wrong")

@@ -29,40 +29,39 @@ export function GuestProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize guest mode on mount
   useEffect(() => {
-    const checkAuthStatus = () => {
-      // Only run on client side
-      if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return
 
-      // Check if user is authenticated
-      const session = localStorage.getItem('next-auth.session-token')
-      if (session) {
-        setIsGuest(false)
-        return
-      }
+    const hasSessionCookie = document.cookie
+      .split(';')
+      .map(cookie => cookie.trim().split('='))
+      .some(([name]) => name === 'next-auth.session-token')
 
-      // Check for existing guest ID or create new one
-      let existingGuestId = localStorage.getItem('guestId')
-      if (!existingGuestId) {
-        existingGuestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-        localStorage.setItem('guestId', existingGuestId)
-      }
-      
-      setGuestId(existingGuestId)
-      setIsGuest(true)
-      
-      // Load existing guest data
-      const data = loadGuestData()
-      setGuestData(data)
+    if (hasSessionCookie) {
+      setIsGuest(false)
+      setGuestId(null)
+      setGuestData(null)
+      return
     }
 
-    checkAuthStatus()
+    let existingGuestId = localStorage.getItem('guestId')
+    if (!existingGuestId) {
+      existingGuestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      localStorage.setItem('guestId', existingGuestId)
+    }
+
+    setGuestId(existingGuestId)
+    setIsGuest(true)
+
+    const data = loadGuestData(existingGuestId)
+    setGuestData(data)
   }, [])
 
-  const loadGuestData = (): GuestData | null => {
-    if (!guestId || typeof window === 'undefined') return null
+  const loadGuestData = (targetId?: string): GuestData | null => {
+    const resolvedId = targetId ?? guestId
+    if (!resolvedId || typeof window === 'undefined') return null
     
     try {
-      const data = localStorage.getItem(`guest_data_${guestId}`)
+      const data = localStorage.getItem(`guest_data_${resolvedId}`)
       return data ? JSON.parse(data) : {
         sparks: [],
         todos: [],
@@ -200,6 +199,7 @@ export function GuestProvider({ children }: { children: React.ReactNode }) {
 
       // Clear guest data after successful merge
       clearGuestData()
+      setIsGuest(false)
     } catch (error) {
       console.error('Error merging guest data:', error)
       throw error

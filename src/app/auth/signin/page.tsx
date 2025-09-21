@@ -114,6 +114,18 @@ export default function SignIn() {
               </div>
 
               <OAuthButtons onSuccess={() => handleAuthSuccess(undefined, true)} />
+
+              <div className="space-y-2 pt-2">
+                <div className="text-center text-xs text-muted-foreground">Prefer to explore first?</div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => router.push("/app")}
+                >
+                  Continue as guest
+                </Button>
+              </div>
             </TabsContent>
 
             {/* Sign Up Tab */}
@@ -262,7 +274,7 @@ export default function SignIn() {
                     </p>
                   </div>
                   <Button 
-                    onClick={() => router.push("/")} 
+                    onClick={() => router.push("/app")} 
                     className="w-full"
                   >
                     Get Started

@@ -126,11 +126,14 @@ export function SparkCard({ spark, isSelected = false, onClick, isDragging = fal
             ${isDragging ? 'touch-drag-active opacity-90' : 'drag-transition'}
             ${users.length > 0 && users.length === 1 ? 'border-2' : 'border-l-4'}
             ${users.length === 0 ? 'touch:w-full touch:max-w-none touch:shadow-md touch-card' : ''}
+            bg-card
           `}
           style={{
             ...(style || {}),
             ...(users.length === 1 ? getPresenceBorderColor() : { borderLeftColor: spark.color }),
-            touchAction: 'manipulation'
+            touchAction: 'manipulation',
+            zIndex: 20,
+            backgroundColor: 'var(--card)',
           }}
           onClick={onClick}
           onMouseEnter={() => setIsHovered(true)}

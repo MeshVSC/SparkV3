@@ -1,54 +1,37 @@
-import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import '@testing-library/jest-dom/vitest'
+import { afterEach, vi } from 'vitest'
+import { cleanup } from '@testing-library/react'
 
-// Mock environment variables
-process.env.NEXTAUTH_SECRET = 'test-secret'
-process.env.NEXTAUTH_URL = 'http://localhost:3000'
+// Clean up React Testing Library after each test
+afterEach(() => {
+  cleanup()
+})
 
-// Mock NextAuth
-vi.mock('next-auth', () => ({
-  default: vi.fn(),
-}))
+// Basic router mocks so components using Next hooks don't fail during tests
+vi.mock('next/navigation', () => {
+  return {
+    useRouter: () => ({
+      push: vi.fn(),
+      replace: vi.fn(),
+      refresh: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+    }),
+    usePathname: () => '/app',
+    useSearchParams: () => new URLSearchParams(),
+  }
+})
 
-// Mock Prisma client
-vi.mock('@/lib/db', () => ({
-  db: {
-    user: {
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      create: vi.fn(),
-    },
-    spark: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-    achievement: {
-      findMany: vi.fn(),
-    },
-    userAchievement: {
-      create: vi.fn(),
-    },
-  },
-}))
-
-// Mock next/router
-vi.mock('next/router', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    pathname: '/',
-    query: {},
-  }),
-}))
-
-// Mock next/navigation
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    refresh: vi.fn(),
-  }),
-  usePathname: () => '/',
-  useSearchParams: () => new URLSearchParams(),
-}))
+// Provide a minimal matchMedia implementation for components that expect it
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  window.matchMedia = () => ({
+    matches: false,
+    media: '',
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })
+}

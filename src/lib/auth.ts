@@ -1,8 +1,88 @@
 import { NextAuthOptions } from "next-auth"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
+import GitHubProvider from "next-auth/providers/github"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
+
+const providers = [
+  CredentialsProvider({
+    name: "credentials",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials, req) {
+      if (!credentials?.email || !credentials?.password) {
+        return null
+      }
+
+      const user = await db.user.findUnique({
+        where: {
+          email: credentials.email,
+        },
+        include: {
+          preferences: true,
+        },
+      })
+
+      if (!user || !user.password) {
+        return null
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        credentials.password,
+        user.password,
+      )
+
+      if (!isPasswordValid) {
+        return null
+      }
+
+      // Update last login
+      await db.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      })
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.avatar,
+        totalXP: user.totalXP,
+        level: user.level,
+        currentStreak: user.currentStreak,
+        preferences: user.preferences ?? undefined,
+      }
+    },
+  }),
+]
+
+const googleClientId = process.env.GOOGLE_CLIENT_ID ?? process.env.GOOGLE_ID
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET ?? process.env.GOOGLE_SECRET
+
+if (googleClientId && googleClientSecret) {
+  providers.push(
+    GoogleProvider({
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+    }),
+  )
+}
+
+const githubClientId = process.env.GITHUB_CLIENT_ID ?? process.env.GITHUB_ID
+const githubClientSecret = process.env.GITHUB_CLIENT_SECRET ?? process.env.GITHUB_SECRET
+
+if (githubClientId && githubClientSecret) {
+  providers.push(
+    GitHubProvider({
+      clientId: githubClientId,
+      clientSecret: githubClientSecret,
+    }),
+  )
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as any,
@@ -12,59 +92,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/auth/signin",
   },
-  providers: [
-    CredentialsProvider({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
-        }
-
-        const user = await db.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-          include: {
-            preferences: true,
-          },
-        })
-
-        if (!user || !user.password) {
-          return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        // Update last login
-        await db.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        })
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.avatar,
-          totalXP: user.totalXP,
-          level: user.level,
-          currentStreak: user.currentStreak,
-          preferences: user.preferences ?? undefined,
-        }
-      },
-    }),
-  ],
+  providers,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {

@@ -167,7 +167,20 @@ export const EnhancedCanvasWithPresence = memo(() => {
       ref={canvasRef}
       className="relative w-full h-full overflow-hidden bg-background"
       onMouseMove={handleMouseMove}
+      data-testid="canvas-view"
     >
+      <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ zIndex: 0 }}>
+        <svg width="100%" height="100%">
+          <defs>
+            <pattern id="canvas-grid" x="0" y="0" width="40" height="40" viewBox="0 0 40 40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 H 0 V 40" fill="none" stroke="rgba(120, 120, 120, 0.25)" strokeWidth="1" />
+              <path d="M 0 40 H 40" fill="none" stroke="rgba(120, 120, 120, 0.12)" strokeWidth="1" />
+              <path d="M 40 0 V 40" fill="none" stroke="rgba(120, 120, 120, 0.12)" strokeWidth="1" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#canvas-grid)" />
+        </svg>
+      </div>
       {/* Enhanced Canvas Controls */}
       <div className="absolute top-4 right-4 z-20 flex gap-2 p-2 bg-background/80 backdrop-blur-sm rounded-lg border shadow-sm">
         {showPresence && (
@@ -237,17 +250,19 @@ export const EnhancedCanvasWithPresence = memo(() => {
         className="relative w-full h-full"
         style={{
           transform: `scale(${zoom}) translate(${pan.x}px, ${pan.y}px)`,
-          transformOrigin: '0 0'
+          transformOrigin: '0 0',
         }}
       >
+
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          data-testid="canvas-container"
         >
           {/* Enhanced Connection Lines SVG Layer */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-5">
             {connectionLines.map(line => {
               const isActive = activeSparkIds.has(line.fromSparkId) || activeSparkIds.has(line.toSparkId)
               return (

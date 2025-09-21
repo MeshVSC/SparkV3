@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!-- Black circular background -->
-  <circle cx="16" cy="16" r="16" fill="#000000"/>
+  <circle cx="8" cy="8" r="8" fill="#000000"/>
   
   <!-- White lightning bolt, thicker and centered -->
-  <g transform="translate(8, 6) scale(0.045, 0.055)">
+  <g transform="translate(4, 3) scale(0.0225, 0.0275)">
     <polygon points="245.281,293.778 177.643,323.046 245.821,171.551 249.712,162.961 129.725,162.961 211.378,8.437 195.394,0 99.701,181.032 221.718,181.032 160.487,317.132 130.764,248.467 114.157,255.637 155.951,352.169 252.469,310.388" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="15"/>
   </g>
 </svg>

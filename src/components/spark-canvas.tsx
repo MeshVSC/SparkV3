@@ -8,7 +8,19 @@ import { SparkCard } from "@/components/spark-card"
 import { ConnectionRecommendations } from "@/components/connection-recommendations"
 import { BatchConnectionTools } from "@/components/batch-connection-tools"
 import { DragConnectionOverlay } from "@/components/drag-connection-overlay"
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter, PointerSensor, useSensor, useSensors, useDraggable } from "@dnd-kit/core"
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  closestCenter,
+  PointerSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+} from "@dnd-kit/core"
 import { Spark, SparkConnection, ConnectionType } from "@/types/spark"
 // import { usePresence } from "@/components/collaboration/presence-provider"
 // import { UserCursors } from "@/components/collaboration/user-cursors"
@@ -168,9 +180,19 @@ export function SparkCanvas() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 4,
       },
-    })
+    }),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 0,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        distance: 6,
+      },
+    }),
   )
 
   // Touch gesture helper functions
@@ -793,6 +815,18 @@ export function SparkCanvas() {
         onTypeChange={setDragConnectionType}
       />
 
+      {/* Background grid pattern - FIXED: moved outside transformed container */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none" style={{ zIndex: -1 }}>
+        <svg width="100%" height="100%">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="hsl(var(--border))" strokeWidth="1"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+      </div>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -817,17 +851,6 @@ export function SparkCanvas() {
           touchAction: 'none', // Prevent default touch behaviors
         }}
       >
-        {/* Background grid pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg width="100%" height="100%">
-            <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-        </div>
 
         {/* Connection Lines */}
         <svg className="absolute inset-0" style={{ zIndex: 0 }}>
@@ -1086,5 +1109,4 @@ export function SparkCanvas() {
     </>
   )
 }
-
 
