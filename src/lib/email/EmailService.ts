@@ -429,6 +429,118 @@ export class EmailService extends EventEmitter {
       `
     });
 
+    this.registerTemplate('password_reset', {
+      subject: 'Reset your {{appName}} password',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Reset your password</title>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.6;
+              color: #1f2937;
+              margin: 0;
+              padding: 0;
+              background-color: #f9fafb;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background-color: white;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              background: linear-gradient(135deg, #6366f1 0%, #10b981 100%);
+              color: white;
+              padding: 32px 24px;
+              text-align: center;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: 600;
+            }
+            .content {
+              padding: 32px 24px;
+            }
+            .button {
+              display: inline-block;
+              padding: 12px 24px;
+              background-color: #10b981;
+              color: white;
+              text-decoration: none;
+              border-radius: 6px;
+              font-weight: 500;
+              transition: background-color 0.2s;
+            }
+            .button:hover {
+              background-color: #059669;
+            }
+            .footer {
+              padding: 24px;
+              text-align: center;
+              font-size: 14px;
+              color: #6b7280;
+              border-top: 1px solid #e5e7eb;
+            }
+            .info {
+              margin-top: 24px;
+              font-size: 14px;
+              color: #4b5563;
+            }
+            .link {
+              word-break: break-all;
+              color: #10b981;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Reset your password</h1>
+            </div>
+            <div class="content">
+              <p>Hi {{name}},</p>
+              <p>We received a request to reset your {{appName}} password. Click the button below to choose a new password.</p>
+              <p style="text-align: center; margin: 32px 0;">
+                <a href="{{resetUrl}}" class="button">Reset password</a>
+              </p>
+              <p class="info">
+                This link expires in {{expiresInMinutes}} minutes. If the button does not work, copy and paste the following URL into your browser:
+                <br><a href="{{resetUrl}}" class="link">{{resetUrl}}</a>
+              </p>
+              <p class="info">
+                If you did not request a password reset, you can safely ignore this email.
+              </p>
+            </div>
+            <div class="footer">
+              <p>Need help? Contact us at <a href="mailto:{{supportEmail}}" class="link">{{supportEmail}}</a>.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+      text: `
+Reset your password
+
+Hi {{name}},
+
+We received a request to reset your {{appName}} password. Use the link below to choose a new password:
+
+{{resetUrl}}
+
+This link expires in {{expiresInMinutes}} minutes. If you did not request a password reset, you can ignore this email.
+
+Need help? Contact {{supportEmail}}.
+      `,
+    });
+
     // Collaboration invite template
     this.registerTemplate('collaboration_invite', {
       subject: '🤝 {{inviterName}} invited you to collaborate',

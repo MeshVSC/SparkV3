@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Loader2, Mail, Lock } from "lucide-react"
 
@@ -108,6 +109,11 @@ export function SignInForm({ onSuccess }: SignInFormProps) {
               <Lock className="h-4 w-4" />
             )}
           </Button>
+        </div>
+        <div className="text-right text-xs text-muted-foreground">
+          <Link href="/auth/forgot-password" className="text-primary hover:underline">
+            Forgot your password?
+          </Link>
         </div>
       </div>
 
